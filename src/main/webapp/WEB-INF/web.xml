@@ -4,4 +4,19 @@
 
 <web-app>
   <display-name>SWENG500 Fantasy Football</display-name>
+  
+  <servlet>
+    <servlet-name>Jersey Web Application</servlet-name>
+    <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+    <init-param>
+      <param-name>com.sun.jersey.config.property.packages</param-name>
+      <param-value>edu.psu.sweng.ff.controller</param-value>
+    </init-param>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>Jersey Web Application</servlet-name>
+    <url-pattern>/resource/*</url-pattern>
+  </servlet-mapping>  
+  
 </web-app>
