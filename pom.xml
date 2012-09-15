@@ -24,7 +24,12 @@
       <artifactId>jersey-servlet</artifactId>
       <version>1.13</version>
     </dependency>
-    </dependencies>
+    <dependency>
+    	<groupId>sweng500</groupId>
+    	<artifactId>ff_common</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
   <build>
     <finalName>ff_server</finalName>
   </build>
