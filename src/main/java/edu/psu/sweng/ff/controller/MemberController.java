@@ -1,6 +1,8 @@
 package edu.psu.sweng.ff.controller;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
@@ -8,6 +10,7 @@ import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -38,7 +41,16 @@ public class MemberController {
 	{
 		
 		MemberDAO dao = new MemberDAO();
-		String token = dao.authenticateUser(userName, password);
+		String token = null;
+		try {
+			token = dao.authenticateUser(userName, Member.getHash(password));
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		Response response = null;
 		if (token != null) {
@@ -61,6 +73,7 @@ public class MemberController {
 
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
+			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 		System.out.println(requester.getUserName() + " is loading self");
@@ -81,6 +94,7 @@ public class MemberController {
 
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
+			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 		System.out.println(requester.getUserName() + " is loading " + userName);
@@ -102,6 +116,7 @@ public class MemberController {
 
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
+			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 		System.out.println(requester.getUserName() + " is loading user " + id);
@@ -109,6 +124,41 @@ public class MemberController {
 		MemberDAO dao = new MemberDAO();
 		Member m = dao.loadById(id);
 		return Response.ok().entity(m).build();
+		
+	}
+	
+	@PUT
+	@Path("/id/{id}")
+	public Response updateMember(
+		@HeaderParam(TOKEN_HEADER) String token,
+		@PathParam("id") int id,
+		Member member
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		// ids have to match
+		if (member.getId() != id) {
+			System.out.println("member id " + member.getId() + " != specified id " + id);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		// you can only update yourself
+		if (requester.getId() != member.getId()) {
+			System.out.println("member " + requester.getUserName() + " cannot update " + member.getUserName());
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+
+		System.out.println(requester.getUserName() + " is updating their account");
+
+		MemberDAO dao = new MemberDAO();
+		member.setAccessToken(UUID.randomUUID().toString());
+		dao.store(member);
+		return Response.ok().build();
 		
 	}
 
@@ -121,12 +171,13 @@ public class MemberController {
 		
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
-		member.setPassword("password"); //TODO: use a real password
 		member.setId(dao.nextMemberId());
 		dao.store(member);
 		
 		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
 		URI memberUri = ub.path("id/" + member.getId()).build();
+		
+		System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
 		
 		return Response.created(memberUri).build();
 		

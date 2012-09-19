@@ -40,7 +40,7 @@ public class MemberDAO {
 		if (m == null) {
 			return null;
 		} else {
-			if (m.getPassword().equals(p)) {
+			if (m.getPasswordHash().equals(p)) {
 				return m.getAccessToken();
 			} else {
 				return null;
@@ -62,9 +62,17 @@ public class MemberDAO {
 	}
 	
 	public void store(Member m) {
+		
+		Member r = idToMemberMap.remove(m.getId());
+		if (r != null) {
+			userNameToMemberMap.remove(r.getUserName());
+			tokenToMemberMap.remove(r.getAccessToken());
+		}
+		
 		idToMemberMap.put(m.getId(), m);
 		userNameToMemberMap.put(m.getUserName(), m);
 		tokenToMemberMap.put(m.getAccessToken(), m);
+		
 	}
 	
 	public int nextMemberId() {
