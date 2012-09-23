@@ -171,11 +171,11 @@ public class MemberController {
 		
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
-		member.setId(dao.nextMemberId());
-		dao.store(member);
+		int id = dao.store(member);
+		member.setId(id);
 		
 		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-		URI memberUri = ub.path("id/" + member.getId()).build();
+		URI memberUri = ub.path("id/" + id).build();
 		
 		System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
 		

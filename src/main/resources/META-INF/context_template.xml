@@ -1,0 +1,8 @@
+<Context docBase="soup" path="soup">
+
+  <Resource name="jdbc/MySQLDB" auth="Container" type="javax.sql.DataSource"
+            maxActive="10" maxIdle="30" maxWait="10000"
+            username="sweng_ff" password="password" driverClassName="com.mysql.jdbc.Driver"
+            url="jdbc:mysql://hostname:3306/sweng500"/>
+
+</Context>
