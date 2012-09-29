@@ -3,8 +3,6 @@ package edu.psu.sweng.ff.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.Map;
 
 import edu.psu.sweng.ff.common.Member;
 
@@ -28,34 +26,11 @@ public class MemberDAO extends BaseDAO {
 	private final static String STORE = "INSERT INTO members (firstname, lastname, username, " +
 			"email, mobilenumber, hideemail, hidename, passwordhash, token) VALUES (" +
 			"?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-	private static Map<Integer, Member> idToMemberMap = new HashMap<Integer, Member>();
-
-	private static Map<String, Member> userNameToMemberMap = new HashMap<String, Member>();
-
-	private static Map<String, Member> tokenToMemberMap = new HashMap<String, Member>();
-
-	private static int nextId = 1;
 	
-	static {
-		
-		Member tester = new Member();
-		tester.setEmail("test@test.com");
-		tester.setFirstName("Test");
-		tester.setLastName("Tester");
-		tester.setHideEmail(false);
-		tester.setId(0);
-		tester.setMobileNumber("555-555-5555");
-		tester.setAccessToken("1111-2222-3333");
-		tester.setPassword("password");
-		tester.setUserName("test");
-		
-		idToMemberMap.put(tester.getId(), tester);
-		userNameToMemberMap.put(tester.getUserName(), tester);
-		tokenToMemberMap.put(tester.getAccessToken(), tester);
-		
-	}
-	
+	private final static String UPDATE = "UPDATE members SET firstname = ?, lastname = ?, " +
+		"username = ?, email = ?, mobilenumber = ?, hideemail = ?, hidename = ?, " +
+		"passwordhash = ?, token = ? WHERE id = ?";
+
 	public String authenticateUser(String u, String p) {
 
 		String token = null;
@@ -267,5 +242,38 @@ public class MemberDAO extends BaseDAO {
 		
 	}
 	
+	public void update(Member m) {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(UPDATE);
+			stmt1.setString(1, m.getFirstName());
+			stmt1.setString(2, m.getLastName());
+			stmt1.setString(3, m.getUserName());
+			stmt1.setString(4, m.getEmail());
+			stmt1.setString(5, m.getMobileNumber());
+			stmt1.setBoolean(6, m.isHideEmail());
+			stmt1.setBoolean(7, m.isHideName());
+			stmt1.setString(8, m.getPasswordHash());
+			stmt1.setString(9, m.getAccessToken());
+			stmt1.setInt(10, m.getId());
+			
+			stmt1.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(stmt1);
+			close(conn);
+		}
+		
+		return;
+		
+	}
 	
 }

@@ -157,7 +157,7 @@ public class MemberController {
 
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
-		dao.store(member);
+		dao.update(member);
 		return Response.ok().build();
 		
 	}
