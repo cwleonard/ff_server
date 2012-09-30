@@ -149,7 +149,9 @@ public class MemberController {
 		
 		// you can only update yourself
 		if (requester.getId() != member.getId()) {
-			System.out.println("member " + requester.getUserName() + " cannot update " + member.getUserName());
+			System.out.println("member " + requester.getUserName() + " (id "
+					+ requester.getId() + ") cannot update "
+					+ member.getUserName() + "(id " + member.getId() + ")");
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 
