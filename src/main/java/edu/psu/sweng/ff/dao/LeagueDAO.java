@@ -20,13 +20,13 @@ public class LeagueDAO extends BaseDAO {
 		"lm.member_id = ?";
 
 	private final static String STORE = "INSERT INTO leagues (name, commissioner, autodraft, " +
-			"week, season) VALUES (?, ?, ?, ?, ?)";
+		"week, season) VALUES (?, ?, ?, ?, ?)";
 
 	private final static String UPDATE = "UPDATE leagues SET name = ?, commissioner = ?, " +
-			"autodraft = ?, week = ?, season = ? WHERE id = ?";
+		"autodraft = ?, week = ?, season = ? WHERE id = ?";
 	
 	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO league_member " +
-			"(league_id, member_id) VALUES (?, ?)";
+		"(league_id, member_id) VALUES (?, ?)";
 	
 	public List<League> loadAll() {
 
@@ -80,7 +80,10 @@ public class LeagueDAO extends BaseDAO {
 				l.setAutoDraft(rs.getBoolean(3));
 				l.setWeek(rs.getInt(4));
 				l.setSeason(null);
-				
+
+				TeamDAO tdao = new TeamDAO();
+				l.setTeams(tdao.loadByLeague(l));
+
 			}
 			
 		} catch (Exception e) {
@@ -114,16 +117,21 @@ public class LeagueDAO extends BaseDAO {
 
 			ll = new ArrayList<League>();
 
+			MemberDAO mdao = new MemberDAO();
+			TeamDAO tdao = new TeamDAO();
+
 			while (rs.next()) {
 				
 				League l = new League();
 				l.setId(rs.getInt(1));
 				l.setName(rs.getString(2));
-				MemberDAO mdao = new MemberDAO();
 				l.setCommissioner(mdao.loadById(rs.getInt(3)));
 				l.setAutoDraft(rs.getBoolean(4));
 				l.setWeek(rs.getInt(5));
 				l.setSeason(null);
+				
+				l.setTeams(tdao.loadByLeague(l));
+				
 				ll.add(l);
 			}
 			
@@ -157,7 +165,7 @@ public class LeagueDAO extends BaseDAO {
 			stmt1.setInt(2, l.getCommissioner().getId());
 			stmt1.setBoolean(3, l.isAutoDraft());
 			stmt1.setInt(4, l.getWeek());
-			stmt1.setInt(5, 0); //TODO: fix this
+			stmt1.setInt(5, 0); //TODO: season - fix this
 			stmt1.executeUpdate();
 			
 			rs = stmt1.executeQuery("SELECT LAST_INSERT_ID()");
@@ -199,7 +207,7 @@ public class LeagueDAO extends BaseDAO {
 			stmt1.setInt(2, l.getCommissioner().getId());
 			stmt1.setBoolean(3, l.isAutoDraft());
 			stmt1.setInt(4, l.getWeek());
-			stmt1.setInt(5, 0); //TODO: fix this
+			stmt1.setInt(5, 0); //TODO: season - fix this
 			
 			stmt1.executeUpdate();
 			
