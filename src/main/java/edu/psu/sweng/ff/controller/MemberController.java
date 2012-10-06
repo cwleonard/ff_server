@@ -21,6 +21,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.gson.Gson;
+
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.dao.MemberDAO;
 
@@ -65,7 +67,7 @@ public class MemberController {
 	}
 
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	public Response getTokenOwner(
 		@HeaderParam(TOKEN_HEADER) String token
 	    )
@@ -78,13 +80,16 @@ public class MemberController {
 		}
 		System.out.println(requester.getUserName() + " is loading self");
 
-		return Response.ok().entity(requester).build();
+		Gson gson = new Gson();
+		String json = gson.toJson(requester);
+
+		return Response.ok().entity(json).build();
 		
 	}
 	
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	@Path("/{userName}")
 	public Response getMember(
 		@HeaderParam(TOKEN_HEADER) String token,
@@ -101,12 +106,16 @@ public class MemberController {
 		
 		MemberDAO dao = new MemberDAO();
 		Member m = dao.loadByUserName(userName);
-		return Response.ok().entity(m).build();
+		
+		Gson gson = new Gson();
+		String json = gson.toJson(m);
+		
+		return Response.ok().entity(json).build();
 		
 	}
 
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	@Path("/id/{id}")
 	public Response getMemberById(
 		@HeaderParam(TOKEN_HEADER) String token,
@@ -123,7 +132,11 @@ public class MemberController {
 		
 		MemberDAO dao = new MemberDAO();
 		Member m = dao.loadById(id);
-		return Response.ok().entity(m).build();
+		
+		Gson gson = new Gson();
+		String json = gson.toJson(m);
+
+		return Response.ok().entity(json).build();
 		
 	}
 	
@@ -132,9 +145,14 @@ public class MemberController {
 	public Response updateMember(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@PathParam("id") int id,
-		Member member
+		String json
 		)
 	{
+		
+		Gson gson = new Gson();
+		Member member = gson.fromJson(json, Member.class);
+		
+		
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -165,11 +183,14 @@ public class MemberController {
 	}
 
 	@POST
-	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Consumes({MediaType.APPLICATION_JSON})
 	public Response createMember(
-		Member member
+		String json
 		)
 	{
+		
+		Gson gson = new Gson();
+		Member member = gson.fromJson(json, Member.class);
 		
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());

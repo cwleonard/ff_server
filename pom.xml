@@ -25,6 +25,16 @@
       <version>1.13</version>
     </dependency>
     <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
+      <version>1.13</version>
+    </dependency>
+    <dependency>
+    	<groupId>com.google.code.gson</groupId>
+    	<artifactId>gson</artifactId>
+    	<version>2.2.2</version>
+    </dependency>
+    <dependency>
     	<groupId>sweng500</groupId>
     	<artifactId>ff_common</artifactId>
     	<version>0.0.1-SNAPSHOT</version>

@@ -19,6 +19,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.gson.Gson;
+
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.LeagueList;
 import edu.psu.sweng.ff.common.Member;
@@ -33,7 +35,7 @@ public class LeagueController {
 	@Context UriInfo uriInfo;
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	public Response getLeagues(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@QueryParam("member") String mId
@@ -56,14 +58,16 @@ public class LeagueController {
 			leagues = dao.loadByMember(mdao.loadById(Integer.parseInt(mId)));
 		}
 
-		LeagueList ll = new LeagueList(leagues);
-		return Response.ok().entity(ll).build();
+		Gson gson = new Gson();
+		String json = gson.toJson(leagues);
+
+		return Response.ok().entity(json).build();
 		
 	}
 	
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	@Path("/{id}")
 	public Response getLeagueById(
 		@HeaderParam(TOKEN_HEADER) String token,
@@ -81,7 +85,10 @@ public class LeagueController {
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(id);
 		
-		return Response.ok().entity(l).build();
+		Gson gson = new Gson();
+		String json = gson.toJson(l);
+
+		return Response.ok().entity(json).build();
 		
 	}
 
@@ -90,9 +97,12 @@ public class LeagueController {
 	public Response updateLeague(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@PathParam("id") int id,
-		League league
+		String json
 		)
 	{
+		Gson gson = new Gson();
+		League league = gson.fromJson(json, League.class);
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -110,12 +120,15 @@ public class LeagueController {
 	}
 
 	@POST
-	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Consumes({MediaType.APPLICATION_JSON})
 	public Response createLeague(
 		@HeaderParam(TOKEN_HEADER) String token,
-		League league
+		String json
 		)
 	{
+		Gson gson = new Gson();
+		League league = gson.fromJson(json, League.class);
+		
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
