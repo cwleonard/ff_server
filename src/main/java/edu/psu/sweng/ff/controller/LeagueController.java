@@ -22,7 +22,6 @@ import javax.ws.rs.core.UriInfo;
 import com.google.gson.Gson;
 
 import edu.psu.sweng.ff.common.League;
-import edu.psu.sweng.ff.common.LeagueList;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.dao.LeagueDAO;
 import edu.psu.sweng.ff.dao.MemberDAO;
@@ -119,6 +118,29 @@ public class LeagueController {
 		
 	}
 
+	@POST
+	@Path("/{id}/join")
+	@Consumes({MediaType.APPLICATION_JSON})
+	public Response joinLeague(
+		@HeaderParam(TOKEN_HEADER) String token,
+		@PathParam("id") int lid
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+
+		System.out.println(requester.getUserName() + " is joining league " + lid);
+
+		LeagueDAO dao = new LeagueDAO();
+		dao.joinLeague(lid, requester.getId());
+
+		return Response.ok().build();
+		
+	}
+	
 	@POST
 	@Consumes({MediaType.APPLICATION_JSON})
 	public Response createLeague(

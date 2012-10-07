@@ -11,13 +11,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+
+import com.google.gson.Gson;
 
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Team;
@@ -32,10 +33,9 @@ public class TeamController {
 	@Context UriInfo uriInfo;
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-	public Response getLeagues(
-		@HeaderParam(TOKEN_HEADER) String token,
-		@QueryParam("member") String mId
+	@Produces({MediaType.APPLICATION_JSON})
+	public Response getByOwner(
+		@HeaderParam(TOKEN_HEADER) String token
 	    )
 	{
 
@@ -44,23 +44,23 @@ public class TeamController {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
-		System.out.println(requester.getUserName() + " is loading teams");
+		System.out.println(requester.getUserName() + " is loading their teams");
 		
 		TeamDAO dao = new TeamDAO();
+		List<Team> teams = dao.loadByOwner(requester);
 		
+		Gson gson = new Gson();
+		String json = gson.toJson(teams);
 		
-		
-
-		
-		return Response.ok().entity(null).build();
+		return Response.ok().entity(json).build();
 		
 	}
 	
 	
 	@GET
-	@Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Produces({MediaType.APPLICATION_JSON})
 	@Path("/{id}")
-	public Response getLeagueById(
+	public Response getById(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@PathParam("id") int id
 	    )
@@ -76,18 +76,25 @@ public class TeamController {
 		TeamDAO dao = new TeamDAO();
 		Team t = dao.loadById(id);
 		
-		return Response.ok().entity(t).build();
+		Gson gson = new Gson();
+		String json = gson.toJson(t);
+
+		return Response.ok().entity(json).build();
 		
 	}
 
 	@PUT
+	@Consumes({MediaType.APPLICATION_JSON})
 	@Path("/{id}")
 	public Response updateLeague(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@PathParam("id") int id,
-		Team team
+		String json
 		)
 	{
+		Gson gson = new Gson();
+		Team team = gson.fromJson(json, Team.class);
+		
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -105,12 +112,15 @@ public class TeamController {
 	}
 
 	@POST
-	@Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+	@Consumes({MediaType.APPLICATION_JSON})
 	public Response createLeague(
 		@HeaderParam(TOKEN_HEADER) String token,
-		Team team
+		String json
 		)
 	{
+		Gson gson = new Gson();
+		Team team = gson.fromJson(json, Team.class);
+		
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);

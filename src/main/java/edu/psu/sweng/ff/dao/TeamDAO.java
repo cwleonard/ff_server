@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.psu.sweng.ff.common.League;
+import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Team;
 
 public class TeamDAO extends BaseDAO {
@@ -15,10 +16,13 @@ public class TeamDAO extends BaseDAO {
 		"owner FROM teams WHERE id = ?";
 	
 	private final static String SELECT_BY_LEAGUE = "SELECT t.id, t.name, t.logo, t.owner " +
-			"FROM teams t, league_team lt WHERE t.id = lt.team_id AND lt.league_id = ?";
+		"FROM teams t, league_team lt WHERE t.id = lt.team_id AND lt.league_id = ?";
+
+	private final static String SELECT_BY_OWNER = "SELECT t.id, t.name, t.logo, t.owner, " +
+		"lt.league_id FROM teams t, league_team lt WHERE t.id = lt.team_id AND t.owner = ?";
 
 	private final static String STORE = "INSERT INTO teams (name, logo, owner) VALUES (" +
-			"?, ?, ?)";
+		"?, ?, ?)";
 	
 	private final static String UPDATE = "UPDATE teams SET name = ?, logo = ?, " +
 		"owner = ? WHERE id = ?";
@@ -66,7 +70,49 @@ public class TeamDAO extends BaseDAO {
 		return tl;
 		
 	}
-	
+
+	public List<Team> loadByOwner(Member m) {
+		
+		List<Team> tl = new ArrayList<Team>();
+		
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		ResultSet rs = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(SELECT_BY_OWNER);
+			stmt1.setInt(1, m.getId());
+			
+			rs = stmt1.executeQuery();
+			
+			MemberDAO mdao = new MemberDAO();
+			while(rs.next()) {
+				
+				Team t = new Team();
+				t.setId(rs.getInt(1));
+				t.setName(rs.getString(2));
+				t.setLogo(rs.getString(3));
+				t.setOwner(mdao.loadById(rs.getInt(4)));
+				t.setLeagueId(rs.getInt(5));
+				tl.add(t);
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(rs);
+			close(stmt1);
+			close(conn);
+		}
+		
+		return tl;
+		
+	}
+
 	public Team loadById(int id) {
 
 		Team t = null;

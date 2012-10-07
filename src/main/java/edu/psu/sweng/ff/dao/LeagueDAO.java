@@ -173,11 +173,8 @@ public class LeagueDAO extends BaseDAO {
 				newId = rs.getInt(1);
 			}
 			
-			// commissioner is currently the only member of this league
-			stmt2 = conn.prepareStatement(STORE_MEMBER_RELATIONSHIP);
-			stmt2.setInt(1, newId);
-			stmt2.setInt(2, l.getCommissioner().getId());
-			stmt2.executeUpdate();
+			// commissioner joins league by creating it
+			this.joinLeague(newId, l.getCommissioner().getId(), conn);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -220,6 +217,39 @@ public class LeagueDAO extends BaseDAO {
 		}
 		
 		return;
+		
+	}
+	
+	public void joinLeague(int lid, int mid) {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+		try {
+			this.joinLeague(lid, mid, conn);
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(conn);
+		}
+		
+	}
+	
+	private void joinLeague(int lid, int mid, Connection conn) {
+		
+		PreparedStatement stmt1 = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(STORE_MEMBER_RELATIONSHIP);
+			stmt1.setInt(1, lid);
+			stmt1.setInt(2, mid);
+			stmt1.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(stmt1);
+		}
 		
 	}
 
