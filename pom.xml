@@ -35,6 +35,12 @@
     	<version>2.2.2</version>
     </dependency>
     <dependency>
+	<groupId>javax.mail</groupId>
+	<artifactId>mail</artifactId>
+	<version>1.4</version>
+</dependency>
+            
+    <dependency>
     	<groupId>sweng500</groupId>
     	<artifactId>ff_common</artifactId>
     	<version>0.0.1-SNAPSHOT</version>
