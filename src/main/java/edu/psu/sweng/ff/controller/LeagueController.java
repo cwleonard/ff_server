@@ -12,6 +12,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -25,6 +26,7 @@ import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.dao.LeagueDAO;
 import edu.psu.sweng.ff.dao.MemberDAO;
+import edu.psu.sweng.ff.dao.PlayerDAO;
 
 @Path("/league")
 public class LeagueController {
@@ -170,6 +172,45 @@ public class LeagueController {
 		
 		return Response.created(leagueUri).build();
 		
+	}
+	
+	@POST
+	@Path("/{id}/startdraft")
+	public Response startDraft(
+		@HeaderParam(TOKEN_HEADER) String token,
+		@PathParam("id") int leagueId
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		LeagueDAO dao = new LeagueDAO();
+		League l = dao.loadById(leagueId);
+		
+		if (l.getCommissioner().equals(requester)) {
+
+			System.out.println("member " + requester.getUserName()
+					+ " is starting the draft process on league " + l.getId());
+			
+			try {
+			
+				l.getDraft().setPlayerSource(new PlayerDAO());
+				l.startDraft();
+			
+			} catch (Exception e) {
+				throw new WebApplicationException(e);
+			}
+			
+		} else {
+			
+			throw new WebApplicationException();
+			
+		}
+	
+		return Response.ok().build();
 	}
 	
 	private Member lookupByToken(String t) {
