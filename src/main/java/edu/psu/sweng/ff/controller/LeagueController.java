@@ -22,8 +22,10 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
 
+import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
+import edu.psu.sweng.ff.common.Player;
 import edu.psu.sweng.ff.dao.LeagueDAO;
 import edu.psu.sweng.ff.dao.MemberDAO;
 import edu.psu.sweng.ff.dao.PlayerDAO;
@@ -213,6 +215,92 @@ public class LeagueController {
 		return Response.ok().build();
 	}
 	
+	@GET
+	@Path("/{id}/players")
+	@Produces({MediaType.APPLICATION_JSON})
+	public Response getAvailablePlayers(
+			@HeaderParam(TOKEN_HEADER) String token,
+			@PathParam("id") int leagueId
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		LeagueDAO dao = new LeagueDAO();
+		League l = dao.loadById(leagueId);
+		Draft draft = l.getDraft();		
+		
+		List<Player> players = null;
+		if (draft.getWaitingFor().equals(requester)) {
+
+			System.out.println("member " + requester.getUserName()
+					+ " is getting available players for draft round "
+					+ draft.getRound() + " in league " + l.getId());
+			
+			try {
+			
+				draft.setPlayerSource(new PlayerDAO());
+				players = draft.getAvailablePlayers();
+			
+			} catch (Exception e) {
+				throw new WebApplicationException(e);
+			}
+			
+		} else {
+			
+			throw new WebApplicationException();
+			
+		}
+		
+		Gson gson = new Gson();
+		String json = gson.toJson(players);
+
+		return Response.ok().entity(json).build();
+		
+	}
+
+	@POST
+	@Path("/{id}/draftplayer")
+	public Response draftPlayer(
+		@HeaderParam(TOKEN_HEADER) String token,
+		@PathParam("id") int leagueId,
+		String json
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		Gson gson = new Gson();
+		Player player = gson.fromJson(json, Player.class);
+		
+		LeagueDAO dao = new LeagueDAO();
+		League l = dao.loadById(leagueId);
+		Draft draft = l.getDraft();
+		
+		if (draft.getWaitingFor().equals(requester)) {
+
+			System.out.println("member " + requester.getUserName()
+					+ " is drafting player " + player.getLastName()
+					+ " for draft round "
+					+ draft.getRound() + " in league " + l.getId());
+			
+			draft.draftPlayer(player);
+			
+		} else {
+			
+			throw new WebApplicationException();
+			
+		}
+	
+		return Response.ok().build();
+	}
+
 	private Member lookupByToken(String t) {
 		
 		MemberDAO dao = new MemberDAO();
