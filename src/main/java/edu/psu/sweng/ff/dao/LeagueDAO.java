@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
 
@@ -27,6 +28,9 @@ public class LeagueDAO extends BaseDAO {
 	
 	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO league_member " +
 		"(league_id, member_id) VALUES (?, ?)";
+	
+	private final static String LOAD_DRAFT_BY_LEAGUE_ID = "SELECT id, automatic, round, team_index, member_id " +
+			"FROM drafts WHERE league_id = ?";
 	
 	public List<League> loadAll() {
 
@@ -80,6 +84,11 @@ public class LeagueDAO extends BaseDAO {
 				l.setAutoDraft(rs.getBoolean(3));
 				l.setWeek(rs.getInt(4));
 				l.setSeason(null);
+				Draft d = this.loadDraft(id);
+				if (d != null) {
+					d.setLeague(l);
+					l.setDraft(d);
+				}
 
 				TeamDAO tdao = new TeamDAO();
 				l.setTeams(tdao.loadByLeague(l));
@@ -95,6 +104,48 @@ public class LeagueDAO extends BaseDAO {
 		}
 		
 		return l;
+		
+	}
+	
+	
+	
+	public Draft loadDraft(int leagueId) {
+		
+		Draft d = null;
+		
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		ResultSet rs = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(LOAD_DRAFT_BY_LEAGUE_ID);
+			stmt1.setInt(1, leagueId);
+			
+			rs = stmt1.executeQuery();
+
+			if (rs.next()) {
+				
+				d = new Draft();
+				d.setAutomatic(rs.getBoolean(2));
+				d.setRound(rs.getInt(3));
+				d.setTeamIndex(rs.getInt(4));
+				MemberDAO mdao = new MemberDAO();
+				d.setWaitingFor(mdao.loadById(rs.getInt(5)));
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(rs);
+			close(stmt1);
+			close(conn);
+		}
+		
+		return d;
 		
 	}
 	
@@ -129,6 +180,11 @@ public class LeagueDAO extends BaseDAO {
 				l.setAutoDraft(rs.getBoolean(4));
 				l.setWeek(rs.getInt(5));
 				l.setSeason(null);
+				Draft d = this.loadDraft(l.getId());
+				if (d != null) {
+					d.setLeague(l);
+					l.setDraft(d);
+				}
 				
 				l.setTeams(tdao.loadByLeague(l));
 				

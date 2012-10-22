@@ -29,6 +29,8 @@ import edu.psu.sweng.ff.common.Player;
 import edu.psu.sweng.ff.dao.LeagueDAO;
 import edu.psu.sweng.ff.dao.MemberDAO;
 import edu.psu.sweng.ff.dao.PlayerDAO;
+import edu.psu.sweng.ff.dao.RosterDAO;
+import edu.psu.sweng.ff.notification.EmailNotifier;
 
 @Path("/league")
 public class LeagueController {
@@ -191,15 +193,19 @@ public class LeagueController {
 		
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(leagueId);
-		
-		if (l.getCommissioner().equals(requester)) {
+		Draft draft = new Draft();
+		draft.setLeague(l);
+		draft.setNotifier(new EmailNotifier());
+		draft.setRosterStore(new RosterDAO());
 
-			System.out.println("member " + requester.getUserName()
-					+ " is starting the draft process on league " + l.getId());
+		System.out.println("member " + requester.getUserName()
+				+ " is starting the draft process on league " + l.getId());
+
+		if (l.getCommissioner().equals(requester)) {
 			
 			try {
 			
-				l.getDraft().setPlayerSource(new PlayerDAO());
+				draft.setPlayerSource(new PlayerDAO());
 				l.startDraft();
 			
 			} catch (Exception e) {
@@ -282,6 +288,8 @@ public class LeagueController {
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(leagueId);
 		Draft draft = l.getDraft();
+		draft.setNotifier(new EmailNotifier());
+		draft.setRosterStore(new RosterDAO());
 		
 		if (draft.getWaitingFor().equals(requester)) {
 

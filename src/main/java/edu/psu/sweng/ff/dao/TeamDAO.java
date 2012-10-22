@@ -48,6 +48,7 @@ public class TeamDAO extends BaseDAO {
 			rs = stmt1.executeQuery();
 			
 			MemberDAO mdao = new MemberDAO();
+			RosterDAO rdao = new RosterDAO();
 			while(rs.next()) {
 				
 				Team t = new Team();
@@ -55,6 +56,7 @@ public class TeamDAO extends BaseDAO {
 				t.setName(rs.getString(2));
 				t.setLogo(rs.getString(3));
 				t.setOwner(mdao.loadById(rs.getInt(4)));
+				t.setRosters(rdao.loadByTeam(t));
 				tl.add(t);
 				
 			}
@@ -89,6 +91,7 @@ public class TeamDAO extends BaseDAO {
 			rs = stmt1.executeQuery();
 			
 			MemberDAO mdao = new MemberDAO();
+			RosterDAO rdao = new RosterDAO();
 			while(rs.next()) {
 				
 				Team t = new Team();
@@ -97,6 +100,7 @@ public class TeamDAO extends BaseDAO {
 				t.setLogo(rs.getString(3));
 				t.setOwner(mdao.loadById(rs.getInt(4)));
 				t.setLeagueId(rs.getInt(5));
+				t.setRosters(rdao.loadByTeam(t));
 				tl.add(t);
 				
 			}
@@ -133,12 +137,14 @@ public class TeamDAO extends BaseDAO {
 			if (rs.next()) {
 				
 				MemberDAO mdao = new MemberDAO();
+				RosterDAO rdao = new RosterDAO();
 				
 				t = new Team();
 				t.setId(id);
 				t.setName(rs.getString(1));
 				t.setLogo(rs.getString(2));
 				t.setOwner(mdao.loadById(rs.getInt(3)));
+				t.setRosters(rdao.loadByTeam(t));
 				
 			}
 			
