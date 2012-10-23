@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import edu.psu.sweng.ff.common.Member;
+
 public class EmailTest {
 
 	@Test
@@ -20,4 +22,17 @@ public class EmailTest {
 		assertTrue(Email.send("Tom Smith", "tom_smith_123@mail.com", "jane_taylor_123@mail.com", "Test", "Test Email"));
 	}
 
+	@Test
+	public void testInvite() {
+		
+		EmailNotifier mailer = new EmailNotifier();
+		Member m = new Member();
+		m.setFirstName("John");
+		m.setLastName("Tester");
+		m.setEmail("tester@amphibian.com");
+		
+		assertTrue(mailer.invite(m, "casey@amphibian.com"));
+		
+	}
+	
 }

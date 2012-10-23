@@ -3,7 +3,10 @@ package edu.psu.sweng.ff.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
+import edu.psu.sweng.ff.common.Invitation;
 import edu.psu.sweng.ff.common.Member;
 
 public class MemberDAO extends BaseDAO {
@@ -30,6 +33,12 @@ public class MemberDAO extends BaseDAO {
 	private final static String UPDATE = "UPDATE members SET firstname = ?, lastname = ?, " +
 		"username = ?, email = ?, mobilenumber = ?, hideemail = ?, hidename = ?, " +
 		"passwordhash = ?, token = ? WHERE id = ?";
+	
+	private final static String INVITE = "INSERT INTO invitations (email, league_id) VALUES (?, ?)";
+	
+	private final static String CLEAR_INVITE = "DELETE FROM invitations WHERE email = ? AND league_id = ?";
+	
+	private final static String SELECT_INVITES = "SELECT league_id FROM invitations WHERE email = ?";
 
 	public String authenticateUser(String u, String p) {
 
@@ -82,7 +91,7 @@ public class MemberDAO extends BaseDAO {
 			
 			rs = stmt1.executeQuery();
 			
-			while(rs.next()) {
+			if (rs.next()) {
 				
 				m = new Member();
 				m.setId(id);
@@ -95,6 +104,7 @@ public class MemberDAO extends BaseDAO {
 				m.setHideName(rs.getBoolean(7));
 				m.setPasswordHash(rs.getString(8));
 				m.setAccessToken(rs.getString(9));
+				m.setInvitations(this.checkForInvitations(m));
 				
 			}
 			
@@ -127,7 +137,7 @@ public class MemberDAO extends BaseDAO {
 			
 			rs = stmt1.executeQuery();
 			
-			while(rs.next()) {
+			if (rs.next()) {
 				
 				m = new Member();
 				m.setId(rs.getInt(1));
@@ -140,6 +150,7 @@ public class MemberDAO extends BaseDAO {
 				m.setHideName(rs.getBoolean(8));
 				m.setPasswordHash(rs.getString(9));
 				m.setAccessToken(rs.getString(10));
+				m.setInvitations(this.checkForInvitations(m));
 				
 			}
 			
@@ -172,7 +183,7 @@ public class MemberDAO extends BaseDAO {
 			
 			rs = stmt1.executeQuery();
 			
-			while(rs.next()) {
+			if (rs.next()) {
 				
 				m = new Member();
 				m.setId(rs.getInt(1));
@@ -185,6 +196,7 @@ public class MemberDAO extends BaseDAO {
 				m.setHideName(rs.getBoolean(8));
 				m.setPasswordHash(rs.getString(9));
 				m.setAccessToken(t);
+				m.setInvitations(this.checkForInvitations(m));
 				
 			}
 			
@@ -241,7 +253,7 @@ public class MemberDAO extends BaseDAO {
 		return newId;
 		
 	}
-	
+
 	public void update(Member m) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
@@ -275,5 +287,66 @@ public class MemberDAO extends BaseDAO {
 		return;
 		
 	}
+
+	public void invite(String email, int leagueId) {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(INVITE);
+			stmt1.setString(1, email);
+			stmt1.setInt(2, leagueId);
+			stmt1.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(stmt1);
+			close(conn);
+		}
+		
+	}
 	
+	public List<Invitation> checkForInvitations(Member m) {
+		
+		List<Invitation> invites = new ArrayList<Invitation>();
+		
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		ResultSet rs = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(SELECT_INVITES);
+			stmt1.setString(1, m.getEmail());
+			
+			rs = stmt1.executeQuery();
+			
+			while(rs.next()) {
+				
+				Invitation i = new Invitation();
+				i.setEmail(m.getEmail());
+				i.setLeagueId(rs.getInt(1));
+				invites.add(i);
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(rs);
+			close(stmt1);
+			close(conn);
+		}
+		
+		return invites;
+		
+	}
+
 }

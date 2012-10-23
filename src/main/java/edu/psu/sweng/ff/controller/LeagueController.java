@@ -1,6 +1,8 @@
 package edu.psu.sweng.ff.controller;
 
+import java.lang.reflect.Type;
 import java.net.URI;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.League;
@@ -309,6 +312,38 @@ public class LeagueController {
 		return Response.ok().build();
 	}
 
+	@POST
+	@Path("/{id}/invite")
+	public Response invite(
+		@HeaderParam(TOKEN_HEADER) String token,
+		@PathParam("id") int leagueId,
+		String json
+		)
+	{
+		Member requester = this.lookupByToken(token);
+		if (requester == null) {
+			System.out.println("unknown token " + token);
+			return Response.status(Status.UNAUTHORIZED).build();
+		}
+		
+		Gson gson = new Gson();
+		Type collectionType = new TypeToken<List<String>>(){}.getType();
+		List<String> emails = gson.fromJson(json, collectionType);
+		
+		EmailNotifier mailer = new EmailNotifier();
+		MemberDAO mdao = new MemberDAO();
+		Iterator<String> it = emails.iterator();
+		while (it.hasNext()) {
+			String email = it.next();
+			mailer.invite(requester, email);
+			mdao.invite(email, leagueId);
+		}
+		
+		return Response.ok().build();
+		
+	}
+	
+	
 	private Member lookupByToken(String t) {
 		
 		MemberDAO dao = new MemberDAO();
