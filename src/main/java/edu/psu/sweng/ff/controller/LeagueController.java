@@ -210,6 +210,7 @@ public class LeagueController {
 			
 				draft.setPlayerSource(new PlayerDAO());
 				l.startDraft();
+				//dao.update(l);
 			
 			} catch (Exception e) {
 				throw new WebApplicationException(e);

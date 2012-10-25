@@ -22,17 +22,17 @@ public class DatabaseConnectionManager {
 
 	private void connect() {
 
-		try {
-
-			InitialContext ctx = new InitialContext();
-			DataSource ds = (DataSource) ctx
-					.lookup("java:comp/env/jdbc/MySQLDB");
-			conn = ds.getConnection();
-
-		} catch (Exception e) {
-
-			e.printStackTrace();
-			System.err.println("context lookup failed, trying the old-fashioned way...");
+//		try {
+//
+//			InitialContext ctx = new InitialContext();
+//			DataSource ds = (DataSource) ctx
+//					.lookup("java:comp/env/jdbc/MySQLDB");
+//			conn = ds.getConnection();
+//
+//		} catch (Exception e) {
+//
+//			e.printStackTrace();
+//			System.err.println("context lookup failed, trying the old-fashioned way...");
 
 		    try {
 		    	
@@ -47,7 +47,7 @@ public class DatabaseConnectionManager {
 		    	e2.printStackTrace();
 		    }
 			
-		}
+//		}
 
 	}
 

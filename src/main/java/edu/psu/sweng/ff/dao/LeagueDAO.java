@@ -31,7 +31,10 @@ public class LeagueDAO extends BaseDAO {
 	
 	private final static String LOAD_DRAFT_BY_LEAGUE_ID = "SELECT id, automatic, round, team_index, member_id " +
 			"FROM drafts WHERE league_id = ?";
-	
+
+	private final static String SAVE_DRAFT = "INSERT INTO drafts (id, automatic, round, team_index, member_id) " +
+		"VALUES (?, ?, ?, ?, ?)";
+
 	public List<League> loadAll() {
 
 		List<League> l = new ArrayList<League>();

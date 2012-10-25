@@ -18,7 +18,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		"starter, player_id FROM rosters WHERE team_id = ? and week_num = ?";
 	
 	private final static String STORE = "INSERT INTO rosters (team_id, " +
-		"week_num, starter, player_id VALUES (?, ?, ?, ?)";
+		"week_num, starter, player_id) VALUES (?, ?, ?, ?)";
 	
 	private final static String CLEAR = "DELETE FROM rosters WHERE " +
 		"team_id = ? AND week_num = ?";
@@ -116,12 +116,13 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			} finally {
 				close(rs);
 				close(stmt1);
-				close(conn);
 			}
 			
 			rosters.add(r);
 
 		}
+
+		close(conn);
 		
 		return rosters;
 		
