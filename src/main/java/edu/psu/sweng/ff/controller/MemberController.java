@@ -202,7 +202,7 @@ public class MemberController {
 		
 		System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
 		
-		return Response.created(memberUri).build();
+		return Response.created(memberUri).header(TOKEN_HEADER, member.getAccessToken()).build();
 		
 	}
 	
