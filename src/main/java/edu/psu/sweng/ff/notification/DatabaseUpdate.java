@@ -10,6 +10,10 @@ public class DatabaseUpdate {
         throw new AssertionError();
     }
     
+    public static void clearCache() {
+    	SportsDataInterface.clearCache();
+    }
+    
     public static void updateAll() {
     	updateTeamRosters();
     }

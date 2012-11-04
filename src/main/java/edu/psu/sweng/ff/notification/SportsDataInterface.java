@@ -18,7 +18,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -30,12 +29,26 @@ public class SportsDataInterface {
 	//private static final String API_KEY = "bzxrzyhacyfnvhbvevfps9zw"; //Our API Key
 	private static final String API_KEY = "ecemnfwb82cgmkqz5fc8nhgw"; //Demo API Key
 	
-	private static String  currentTeamId;
+	private static String  currentTeamId = "";
 	private static Document currentTeamDocument;
 
     // Suppress default constructor
     private SportsDataInterface() {
         throw new AssertionError();
+    }
+    
+    public static void clearCache() {
+    	//reset currentTeam to force it to reload
+    	currentTeamId = "";
+    	
+    	//Delete team roster xml files
+    	String[] teamIds = getTeamIds();
+    	for (String teamId: teamIds) {
+    		deleteFile(System.getProperty("java.io.tmpdir") + "\\roster_" + teamId + ".xml");
+    	}
+    	
+    	//Delete hierarchy xml file
+    	deleteFile(System.getProperty("java.io.tmpdir") + "\\hierarchy.xml");
     }
     
     public static String[] getTeamIds() {
@@ -145,6 +158,8 @@ public class SportsDataInterface {
     			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
     			currentTeamDocument = dBuilder.parse(roster_xml);
     			currentTeamDocument.getDocumentElement().normalize();
+    			
+    			currentTeamId = teamId;
 		    } catch (Exception e) {
 	    		e.printStackTrace();
 	    	}
@@ -177,5 +192,18 @@ public class SportsDataInterface {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+    
+    private static void deleteFile(String filePath) {
+    	try {
+    		File file = new File(filePath);
+    		if (file.delete()) {
+    			System.out.println(file.getName() + " is deleted!");
+    		} else {
+    			System.out.println("Delete operation is failed.");
+    		}
+    	} catch(Exception e) {
+    		e.printStackTrace();
+    	}
     }
 }

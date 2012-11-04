@@ -6,7 +6,7 @@ public class RunDatabaseUpdate {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		DatabaseUpdate.updateAll();
+		DatabaseUpdate.clearCache();
 	}
 
 }
