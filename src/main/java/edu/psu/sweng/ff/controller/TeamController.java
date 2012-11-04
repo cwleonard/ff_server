@@ -86,7 +86,7 @@ public class TeamController {
 	@PUT
 	@Consumes({MediaType.APPLICATION_JSON})
 	@Path("/{id}")
-	public Response updateLeague(
+	public Response updateTeam(
 		@HeaderParam(TOKEN_HEADER) String token,
 		@PathParam("id") int id,
 		String json
@@ -113,7 +113,7 @@ public class TeamController {
 
 	@POST
 	@Consumes({MediaType.APPLICATION_JSON})
-	public Response createLeague(
+	public Response createTeam(
 		@HeaderParam(TOKEN_HEADER) String token,
 		String json
 		)

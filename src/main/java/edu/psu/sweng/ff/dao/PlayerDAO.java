@@ -12,26 +12,59 @@ import edu.psu.sweng.ff.common.PlayerSource;
 
 public class PlayerDAO extends BaseDAO implements PlayerSource {
 
-	private final static String STORE = "INSERT INTO players (guid, firstname, " +
-		"lastname, birthdate, height, weight, college, nfl_team, " +
-		"position) VALUES (?,?,?,?,?,?,?,?,?)";
+//	private final static String STORE = "INSERT INTO players (guid, firstname, " +
+//		"lastname, birthdate, height, weight, college, nfl_team, " +
+//		"position) VALUES (?,?,?,?,?,?,?,?,?)";
+//
+//	private final static String UPDATE = "INSERT INTO players (guid, firstname, " +
+//		"lastname, birthdate, height, weight, college, nfl_team, " +
+//		"position) VALUES (?,?,?,?,?,?,?,?,?)";
+//
+//	private final static String LOAD_BY_ID = "SELECT firstname, lastname, " +
+//		"birthdate, height, weight, college, nfl_team, position " +
+//		"FROM players WHERE guid = ?";
+//	
+//	private final static String LOAD_BY_TYPE = "SELECT guid, firstname, lastname, " +
+//		"birthdate, height, weight, college, nfl_team, position " +
+//		"FROM players WHERE position = ?";
+//
+//	private final static String LOAD_BY_TYPES = "SELECT guid, firstname, lastname, " +
+//		"birthdate, height, weight, college, nfl_team, position " +
+//		"FROM players WHERE position IN ";
+//	
+//	private final static String RESTRICT = " AND guid NOT IN (SELECT player_id " +
+//			"FROM rosters, league_team WHERE league_id = ? AND " +
+//			"rosters.team_id = league_team.team_id)";
+
+	private final static String CHECK = "SELECT playerid FROM ff_players WHERE playerid = ?";
 	
+	private final static String STORE = "INSERT INTO ff_players (playerid, firstname, " +
+		"lastname, birthdate, height, weight, college, nflteam, " +
+		"position, jerseynumber) VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+	private final static String UPDATE = "UPDATE ff_players SET firstname = ?, " +
+		"lastname = ?, birthdate = ?, height = ?, weight = ?, college = ?, nflteam = ?, " +
+		"position = ?, jerseynumber = ? WHERE playerid = ?";
+	
+	private final static String REMOVE = "DELETE FROM ff_players WHERE playerid = ?";
+
 	private final static String LOAD_BY_ID = "SELECT firstname, lastname, " +
-		"birthdate, height, weight, college, nfl_team, position " +
-		"FROM players WHERE guid = ?";
-	
-	private final static String LOAD_BY_TYPE = "SELECT guid, firstname, lastname, " +
-		"birthdate, height, weight, college, nfl_team, position " +
-		"FROM players WHERE position = ?";
+		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
+		"FROM ff_players WHERE playerid = ?";
 
-	private final static String LOAD_BY_TYPES = "SELECT guid, firstname, lastname, " +
-		"birthdate, height, weight, college, nfl_team, position " +
-		"FROM players WHERE position IN ";
-	
-	private final static String RESTRICT = " AND guid NOT IN (SELECT player_id " +
-			"FROM rosters, league_team WHERE league_id = ? AND " +
-			"rosters.team_id = league_team.team_id)";
+	private final static String LOAD_BY_TYPE = "SELECT playerid, firstname, lastname, " +
+		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
+		"FROM ff_players WHERE position = ?";
 
+	private final static String LOAD_BY_TYPES = "SELECT playerid, firstname, lastname, " +
+		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
+		"FROM ff_players WHERE position IN ";
+
+	private final static String RESTRICT = " AND playerid NOT IN (SELECT playerid " +
+		"FROM ff_rosters, ff_teams WHERE ff_teams.league_id = ? AND " +
+		"ff_rosters.team_id = ff_teams.id)";
+	
+	
 	public List<Player> getByType(String type) {
 		return this.getByType(-1, type);
 	}
@@ -75,6 +108,7 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 				p.setCollege(rs.getString(7));
 				p.setNflTeam(rs.getString(8));
 				p.setPosition(rs.getString(9));
+				p.setJerseyNumber(rs.getInt(10));
 				lp.add(p);
 				
 			}
@@ -137,6 +171,7 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 				p.setCollege(rs.getString(7));
 				p.setNflTeam(rs.getString(8));
 				p.setPosition(rs.getString(9));
+				p.setJerseyNumber(rs.getInt(10));
 				lp.add(p);
 				
 			}
@@ -183,6 +218,7 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 				p.setCollege(rs.getString(6));
 				p.setNflTeam(rs.getString(7));
 				p.setPosition(rs.getString(8));
+				p.setJerseyNumber(rs.getInt(9));
 				
 			}
 			
@@ -198,35 +234,95 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		
 	}
 	
-	public void store(Player p) {
+	public boolean store(Player p) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
 
 		PreparedStatement stmt1 = null;
+		PreparedStatement stmt2 = null;
+		ResultSet rs1 = null;
 
 		try {
 
-			stmt1 = conn.prepareStatement(STORE);
+			stmt1 = conn.prepareStatement(CHECK);
 			stmt1.setString(1, p.getId());
-			stmt1.setString(2, p.getFirstName());
-			stmt1.setString(3, p.getLastName());
-			stmt1.setDate(4, new Date(p.getBirthdate().getTime()));
-			stmt1.setInt(5, p.getHeight());
-			stmt1.setInt(6, p.getWeight());
-			stmt1.setString(7, p.getCollege());
-			stmt1.setString(8, p.getNflTeam());
-			stmt1.setString(9, p.getPosition());
-			stmt1.executeUpdate();
+			rs1 = stmt1.executeQuery();
+			
+			if (rs1.next()) {
+				// this player is already in the table. update.
+				stmt2 = conn.prepareStatement(UPDATE);
+				stmt2.setString(1, p.getFirstName());
+				stmt2.setString(2, p.getLastName());
+				stmt2.setDate(3, new Date(p.getBirthdate().getTime()));
+				stmt2.setInt(4, p.getHeight());
+				stmt2.setInt(5, p.getWeight());
+				stmt2.setString(6, p.getCollege());
+				stmt2.setString(7, p.getNflTeam());
+				stmt2.setString(8, p.getPosition());
+				stmt2.setInt(9, p.getJerseyNumber());
+				stmt2.setString(10, p.getId());
+				stmt2.executeUpdate();
+			} else {
+				// this player is new. insert.
+				stmt2 = conn.prepareStatement(STORE);
+				stmt2.setString(1, p.getId());
+				stmt2.setString(2, p.getFirstName());
+				stmt2.setString(3, p.getLastName());
+				stmt2.setDate(4, new Date(p.getBirthdate().getTime()));
+				stmt2.setInt(5, p.getHeight());
+				stmt2.setInt(6, p.getWeight());
+				stmt2.setString(7, p.getCollege());
+				stmt2.setString(8, p.getNflTeam());
+				stmt2.setString(9, p.getPosition());
+				stmt2.setInt(10, p.getJerseyNumber());
+				stmt2.executeUpdate();
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		} finally {
+			close(rs1);
 			close(stmt1);
+			close(stmt2);
 			close(conn);
 		}
 		
+		return true;
+		
 	}
 	
+	public boolean remove(Player p) {
+
+		boolean ret = true;
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		PreparedStatement stmt2 = null;
+		ResultSet rs1 = null;
+
+		try {
+
+			stmt1 = conn.prepareStatement(REMOVE);
+			stmt1.setString(1, p.getId());
+			if (stmt1.executeUpdate() != 1) {
+				ret = false;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret = false;
+		} finally {
+			close(rs1);
+			close(stmt1);
+			close(stmt2);
+			close(conn);
+		}
+		
+		return ret;
+		
+	}
 
 }

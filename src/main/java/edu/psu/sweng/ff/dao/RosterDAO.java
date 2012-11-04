@@ -15,14 +15,16 @@ import edu.psu.sweng.ff.common.Team;
 public class RosterDAO extends BaseDAO implements RosterStore {
 
 	private final static String SELECT_BY_TEAM = "SELECT " +
-		"starter, player_id FROM rosters WHERE team_id = ? and week_num = ?";
+		"starter, playerid FROM ff_rosters WHERE team_id = ? and week = ?";
 	
-	private final static String STORE = "INSERT INTO rosters (team_id, " +
-		"week_num, starter, player_id) VALUES (?, ?, ?, ?)";
+	private final static String STORE = "INSERT INTO ff_rosters (team_id, " +
+		"week, starter, playerid) VALUES (?, ?, ?, ?)";
 	
-	private final static String CLEAR = "DELETE FROM rosters WHERE " +
-		"team_id = ? AND week_num = ?";
+	private final static String CLEAR = "DELETE FROM ff_rosters WHERE " +
+		"team_id = ? AND week = ?";
 
+	private final static String REMOVE = "DELETE FROM ff_rosters WHERE team_id = ?";
+	
 	public Roster loadByTeamAndWeek(Team t, int week) {
 
 		Roster r = new Roster();

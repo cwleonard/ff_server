@@ -13,31 +13,51 @@ import edu.psu.sweng.ff.common.Member;
 public class LeagueDAO extends BaseDAO {
 
 
-	private final static String SELECT_BY_ID = "SELECT name, commissioner, autodraft, " +
-		"week, season FROM leagues WHERE id = ?";
+//	private final static String SELECT_BY_ID = "SELECT name, commissioner, autodraft, " +
+//		"week, season FROM leagues WHERE id = ?";
+//
+//	private final static String SELECT_BY_MEMBER_ID = "SELECT l.id, l.name, l.commissioner, l.autodraft, " +
+//		"l.week, l.season FROM leagues l, league_member lm WHERE lm.league_id = l.id AND " +
+//		"lm.member_id = ?";
+//
+//	private final static String STORE = "INSERT INTO leagues (name, commissioner, autodraft, " +
+//		"week, season) VALUES (?, ?, ?, ?, ?)";
+//
+//	private final static String UPDATE = "UPDATE leagues SET name = ?, commissioner = ?, " +
+//		"autodraft = ?, week = ?, season = ? WHERE id = ?";
+//	
+//	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO league_member " +
+//		"(league_id, member_id) VALUES (?, ?)";
+//	
+//	private final static String LOAD_DRAFT_BY_LEAGUE_ID = "SELECT id, automatic, round, team_index, member_id " +
+//			"FROM drafts WHERE league_id = ?";
+//
+//	private final static String SAVE_DRAFT = "INSERT INTO drafts (id, automatic, round, team_index, member_id) " +
+//		"VALUES (?, ?, ?, ?, ?)";
 
-	private final static String SELECT_BY_MEMBER_ID = "SELECT l.id, l.name, l.commissioner, l.autodraft, " +
-		"l.week, l.season FROM leagues l, league_member lm WHERE lm.league_id = l.id AND " +
+	private final static String LOAD_ALL = "SELECT id, name, commissioner_id FROM ff_leagues";
+	
+	private final static String SELECT_BY_ID = "SELECT name, commissioner_id " +
+		"FROM ff_leagues WHERE id = ?";
+
+	private final static String SELECT_BY_MEMBER_ID = "SELECT l.id, l.name, l.commissioner_id " +
+		"FROM ff_leagues l, ff_league_member lm WHERE lm.league_id = l.id AND " +
 		"lm.member_id = ?";
 
-	private final static String STORE = "INSERT INTO leagues (name, commissioner, autodraft, " +
-		"week, season) VALUES (?, ?, ?, ?, ?)";
+	private final static String STORE = "INSERT INTO ff_leagues (name, " +
+		"commissioner_id) VALUES (?, ?)";
 
-	private final static String UPDATE = "UPDATE leagues SET name = ?, commissioner = ?, " +
-		"autodraft = ?, week = ?, season = ? WHERE id = ?";
-	
-	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO league_member " +
+	private final static String UPDATE = "UPDATE ff_leagues SET name = ?, " +
+		"commissioner_id = ? WHERE id = ?";
+
+	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO ff_league_member " +
 		"(league_id, member_id) VALUES (?, ?)";
 	
-	private final static String LOAD_DRAFT_BY_LEAGUE_ID = "SELECT id, automatic, round, team_index, member_id " +
-			"FROM drafts WHERE league_id = ?";
-
-	private final static String SAVE_DRAFT = "INSERT INTO drafts (id, automatic, round, team_index, member_id) " +
-		"VALUES (?, ?, ?, ?, ?)";
+	private final static String REMOVE = "DELETE FROM ff_leagues WHERE id = ?";
 
 	public List<League> loadAll() {
 
-		List<League> l = new ArrayList<League>();
+		List<League> ll = new ArrayList<League>();
 		
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
@@ -47,6 +67,24 @@ public class LeagueDAO extends BaseDAO {
 		
 		try {
 
+			stmt1 = conn.prepareStatement(LOAD_ALL);
+			rs = stmt1.executeQuery();
+			
+			MemberDAO mdao = new MemberDAO();
+			TeamDAO tdao = new TeamDAO();
+			DraftDAO ddao = new DraftDAO();
+
+			while (rs.next()) {
+				
+				League l = new League();
+				l.setId(rs.getInt(1));
+				l.setName(rs.getString(2));
+				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
+				l.setDraft(ddao.loadByLeague(l));
+				l.setTeams(tdao.loadByLeague(l));
+				
+				ll.add(l);
+			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -56,7 +94,7 @@ public class LeagueDAO extends BaseDAO {
 			close(conn);
 		}
 		
-		return l;
+		return ll;
 		
 	}
 	
@@ -83,15 +121,9 @@ public class LeagueDAO extends BaseDAO {
 				l.setId(id);
 				l.setName(rs.getString(1));
 				MemberDAO mdao = new MemberDAO();
-				l.setCommissioner(mdao.loadById(rs.getInt(2)));
-				l.setAutoDraft(rs.getBoolean(3));
-				l.setWeek(rs.getInt(4));
-				l.setSeason(null);
-				Draft d = this.loadDraft(id);
-				if (d != null) {
-					d.setLeague(l);
-					l.setDraft(d);
-				}
+				l.setCommissioner(mdao.loadByUserName(rs.getString(2)));
+				DraftDAO ddao = new DraftDAO();
+				l.setDraft(ddao.loadByLeague(l));
 
 				TeamDAO tdao = new TeamDAO();
 				l.setTeams(tdao.loadByLeague(l));
@@ -110,48 +142,6 @@ public class LeagueDAO extends BaseDAO {
 		
 	}
 	
-	
-	
-	public Draft loadDraft(int leagueId) {
-		
-		Draft d = null;
-		
-		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
-		Connection conn = dbcm.getConnection();
-
-		PreparedStatement stmt1 = null;
-		ResultSet rs = null;
-		
-		try {
-
-			stmt1 = conn.prepareStatement(LOAD_DRAFT_BY_LEAGUE_ID);
-			stmt1.setInt(1, leagueId);
-			
-			rs = stmt1.executeQuery();
-
-			if (rs.next()) {
-				
-				d = new Draft();
-				d.setAutomatic(rs.getBoolean(2));
-				d.setRound(rs.getInt(3));
-				d.setTeamIndex(rs.getInt(4));
-				MemberDAO mdao = new MemberDAO();
-				d.setWaitingFor(mdao.loadById(rs.getInt(5)));
-				
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			close(rs);
-			close(stmt1);
-			close(conn);
-		}
-		
-		return d;
-		
-	}
-	
 	public List<League> loadByMember(Member m) {
 		
 		List<League> ll = null;
@@ -165,7 +155,7 @@ public class LeagueDAO extends BaseDAO {
 		try {
 
 			stmt1 = conn.prepareStatement(SELECT_BY_MEMBER_ID);
-			stmt1.setInt(1, m.getId());
+			stmt1.setString(1, m.getUserName());
 			
 			rs = stmt1.executeQuery();
 
@@ -173,22 +163,15 @@ public class LeagueDAO extends BaseDAO {
 
 			MemberDAO mdao = new MemberDAO();
 			TeamDAO tdao = new TeamDAO();
+			DraftDAO ddao = new DraftDAO();
 
 			while (rs.next()) {
 				
 				League l = new League();
 				l.setId(rs.getInt(1));
 				l.setName(rs.getString(2));
-				l.setCommissioner(mdao.loadById(rs.getInt(3)));
-				l.setAutoDraft(rs.getBoolean(4));
-				l.setWeek(rs.getInt(5));
-				l.setSeason(null);
-				Draft d = this.loadDraft(l.getId());
-				if (d != null) {
-					d.setLeague(l);
-					l.setDraft(d);
-				}
-				
+				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
+				l.setDraft(ddao.loadByLeague(l));
 				l.setTeams(tdao.loadByLeague(l));
 				
 				ll.add(l);
@@ -206,7 +189,7 @@ public class LeagueDAO extends BaseDAO {
 		
 	}
 	
-	public int store(League l) {
+	public boolean store(League l) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
@@ -221,22 +204,24 @@ public class LeagueDAO extends BaseDAO {
 
 			stmt1 = conn.prepareStatement(STORE);
 			stmt1.setString(1, l.getName());
-			stmt1.setInt(2, l.getCommissioner().getId());
-			stmt1.setBoolean(3, l.isAutoDraft());
-			stmt1.setInt(4, l.getWeek());
-			stmt1.setInt(5, 0); //TODO: season - fix this
+			stmt1.setString(2, l.getCommissioner().getUserName());
 			stmt1.executeUpdate();
 			
 			rs = stmt1.executeQuery("SELECT LAST_INSERT_ID()");
 			if (rs.next()) {
 				newId = rs.getInt(1);
 			}
+			l.setId(newId);
+			l.getDraft().setLeagueId(newId);
+			DraftDAO ddao = new DraftDAO();
+			ddao.store(l.getDraft());
 			
 			// commissioner joins league by creating it
-			this.joinLeague(newId, l.getCommissioner().getId(), conn);
+			this.joinLeague(newId, l.getCommissioner().getUserName(), conn);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		} finally {
 			close(rs);
 			close(stmt1);
@@ -244,11 +229,45 @@ public class LeagueDAO extends BaseDAO {
 			close(conn);
 		}
 		
-		return newId;
+		return true;
 		
 	}
 
-	public void update(League l) {
+	public boolean remove(League l) {
+
+		boolean ret = true;
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		ResultSet rs = null;
+
+		try {
+
+			stmt1 = conn.prepareStatement(REMOVE);
+			stmt1.setInt(1, l.getId());
+
+			if (stmt1.executeUpdate() != 1) {
+				ret = false;
+			} else {
+				DraftDAO ddao = new DraftDAO();
+				ddao.remove(l.getDraft());
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			ret = false;
+		} finally {
+			close(rs);
+			close(stmt1);
+			close(conn);
+		}
+		
+		return ret;
+		
+	}
+
+	public boolean update(League l) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
@@ -260,26 +279,28 @@ public class LeagueDAO extends BaseDAO {
 
 			stmt1 = conn.prepareStatement(UPDATE);
 			stmt1.setString(1, l.getName());
-			stmt1.setInt(2, l.getCommissioner().getId());
-			stmt1.setBoolean(3, l.isAutoDraft());
-			stmt1.setInt(4, l.getWeek());
-			stmt1.setInt(5, 0); //TODO: season - fix this
+			stmt1.setString(2, l.getCommissioner().getUserName());
+			stmt1.setInt(3, l.getId());
 			
 			stmt1.executeUpdate();
 			
+			DraftDAO ddao = new DraftDAO();
+			ddao.store(l.getDraft());
+
 		} catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		} finally {
 			close(rs);
 			close(stmt1);
 			close(conn);
 		}
 		
-		return;
+		return true;
 		
 	}
 	
-	public void joinLeague(int lid, int mid) {
+	public void joinLeague(int lid, String mid) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
@@ -293,7 +314,7 @@ public class LeagueDAO extends BaseDAO {
 		
 	}
 	
-	private void joinLeague(int lid, int mid, Connection conn) {
+	private void joinLeague(int lid, String mid, Connection conn) {
 		
 		PreparedStatement stmt1 = null;
 		
@@ -301,7 +322,7 @@ public class LeagueDAO extends BaseDAO {
 
 			stmt1 = conn.prepareStatement(STORE_MEMBER_RELATIONSHIP);
 			stmt1.setInt(1, lid);
-			stmt1.setInt(2, mid);
+			stmt1.setString(2, mid);
 			stmt1.executeUpdate();
 			
 		} catch (Exception e) {

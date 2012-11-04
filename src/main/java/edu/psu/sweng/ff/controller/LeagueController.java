@@ -46,7 +46,7 @@ public class LeagueController {
 	@Produces({MediaType.APPLICATION_JSON})
 	public Response getLeagues(
 		@HeaderParam(TOKEN_HEADER) String token,
-		@QueryParam("member") String mId
+		@QueryParam("member") String userName
 	    )
 	{
 
@@ -59,11 +59,11 @@ public class LeagueController {
 		
 		LeagueDAO dao = new LeagueDAO();
 		List<League> leagues = null;
-		if (mId == null || mId.length() == 0) {
+		if (userName == null || userName.length() == 0) {
 			leagues = dao.loadAll();
 		} else {
 			MemberDAO mdao = new MemberDAO();
-			leagues = dao.loadByMember(mdao.loadById(Integer.parseInt(mId)));
+			leagues = dao.loadByMember(mdao.loadByUserName(userName));
 		}
 
 		Gson gson = new Gson();
@@ -144,7 +144,7 @@ public class LeagueController {
 		System.out.println(requester.getUserName() + " is joining league " + lid);
 
 		LeagueDAO dao = new LeagueDAO();
-		dao.joinLeague(lid, requester.getId());
+		dao.joinLeague(lid, requester.getUserName());
 
 		return Response.ok().build();
 		
@@ -167,11 +167,10 @@ public class LeagueController {
 		}
 		
 		LeagueDAO dao = new LeagueDAO();
-		int id = dao.store(league);
-		league.setId(id);
+		boolean ok = dao.store(league);
 		
 		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-		URI leagueUri = ub.path(String.valueOf(id)).build();
+		URI leagueUri = ub.path(String.valueOf(league.getId())).build();
 		
 		System.out.println("member " + requester.getUserName()
 				+ " created new leauge " + league.getName() + " with id "
@@ -196,8 +195,7 @@ public class LeagueController {
 		
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(leagueId);
-		Draft draft = new Draft();
-		draft.setLeague(l);
+		Draft draft = l.getDraft();
 		draft.setNotifier(new EmailNotifier());
 		draft.setRosterStore(new RosterDAO());
 
@@ -210,7 +208,7 @@ public class LeagueController {
 			
 				draft.setPlayerSource(new PlayerDAO());
 				l.startDraft();
-				//dao.update(l);
+				dao.update(l);
 			
 			} catch (Exception e) {
 				throw new WebApplicationException(e);
@@ -241,7 +239,7 @@ public class LeagueController {
 		
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(leagueId);
-		Draft draft = l.getDraft();		
+		Draft draft = l.getDraft();
 		
 		List<Player> players = null;
 		if (draft.getWaitingFor().equals(requester)) {
@@ -253,7 +251,7 @@ public class LeagueController {
 			try {
 			
 				draft.setPlayerSource(new PlayerDAO());
-				players = draft.getAvailablePlayers();
+				players = l.getAvailablePlayers();
 			
 			} catch (Exception e) {
 				throw new WebApplicationException(e);

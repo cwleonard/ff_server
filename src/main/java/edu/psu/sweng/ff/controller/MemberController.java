@@ -114,37 +114,37 @@ public class MemberController {
 		
 	}
 
-	@GET
-	@Produces({MediaType.APPLICATION_JSON})
-	@Path("/id/{id}")
-	public Response getMemberById(
-		@HeaderParam(TOKEN_HEADER) String token,
-		@PathParam("id") int id
-	    )
-	{
-
-		Member requester = this.lookupByToken(token);
-		if (requester == null) {
-			System.out.println("unknown token " + token);
-			return Response.status(Status.UNAUTHORIZED).build();
-		}
-		System.out.println(requester.getUserName() + " is loading user " + id);
-		
-		MemberDAO dao = new MemberDAO();
-		Member m = dao.loadById(id);
-		
-		Gson gson = new Gson();
-		String json = gson.toJson(m);
-
-		return Response.ok().entity(json).build();
-		
-	}
+//	@GET
+//	@Produces({MediaType.APPLICATION_JSON})
+//	@Path("/id/{id}")
+//	public Response getMemberById(
+//		@HeaderParam(TOKEN_HEADER) String token,
+//		@PathParam("id") int id
+//	    )
+//	{
+//
+//		Member requester = this.lookupByToken(token);
+//		if (requester == null) {
+//			System.out.println("unknown token " + token);
+//			return Response.status(Status.UNAUTHORIZED).build();
+//		}
+//		System.out.println(requester.getUserName() + " is loading user " + id);
+//		
+//		MemberDAO dao = new MemberDAO();
+//		Member m = dao.loadById(id);
+//		
+//		Gson gson = new Gson();
+//		String json = gson.toJson(m);
+//
+//		return Response.ok().entity(json).build();
+//		
+//	}
 	
 	@PUT
-	@Path("/id/{id}")
+	@Path("/{username}")
 	public Response updateMember(
 		@HeaderParam(TOKEN_HEADER) String token,
-		@PathParam("id") int id,
+		@PathParam("username") String userName,
 		String json
 		)
 	{
@@ -159,17 +159,10 @@ public class MemberController {
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 		
-		// ids have to match
-		if (member.getId() != id) {
-			System.out.println("member id " + member.getId() + " != specified id " + id);
-			return Response.status(Status.UNAUTHORIZED).build();
-		}
-		
 		// you can only update yourself
-		if (requester.getId() != member.getId()) {
-			System.out.println("member " + requester.getUserName() + " (id "
-					+ requester.getId() + ") cannot update "
-					+ member.getUserName() + "(id " + member.getId() + ")");
+		if (requester.getUserName() != member.getUserName()) {
+			System.out.println("member " + requester.getUserName() + " cannot update "
+					+ member.getUserName());
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 
@@ -189,20 +182,37 @@ public class MemberController {
 		)
 	{
 		
+		Response response = null;
+		
 		Gson gson = new Gson();
 		Member member = gson.fromJson(json, Member.class);
 		
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
-		int id = dao.store(member);
-		member.setId(id);
+//		int id = dao.store(member);
+//		member.setId(id);
+//		
+//		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+//		URI memberUri = ub.path("id/" + id).build();
+		boolean ok = dao.store(member);
+		if (ok) {
+			
+			UriBuilder ub = uriInfo.getAbsolutePathBuilder();
+			URI memberUri = ub.path(member.getUserName()).build();
+			
+//			System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
+			System.out.println("created new member " + member.getUserName());
+			
+			response = Response.created(memberUri).header(TOKEN_HEADER, member.getAccessToken()).build();
+			
+		} else {
+
+			System.out.println("creation of new member " + member.getUserName() + " failed!");
+			response = Response.status(500).entity("error creating new member").build();
+			
+		}
 		
-		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-		URI memberUri = ub.path("id/" + id).build();
-		
-		System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
-		
-		return Response.created(memberUri).header(TOKEN_HEADER, member.getAccessToken()).build();
+		return response;
 		
 	}
 	
