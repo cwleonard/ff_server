@@ -5,6 +5,8 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import edu.psu.sweng.ff.common.Member;
+import edu.psu.sweng.ff.notification.Email;
+import edu.psu.sweng.ff.notification.EmailNotifier;
 
 public class EmailTest {
 

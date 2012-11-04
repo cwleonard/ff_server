@@ -1,6 +1,5 @@
 package edu.psu.sweng.ff.notification;
 
-import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Notifier;
 
