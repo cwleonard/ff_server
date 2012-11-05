@@ -36,4 +36,10 @@ public class DatabaseUpdate {
 		}
     }
 
+    public static void main(String[] args) {
+    	
+    	DatabaseUpdate.updateAll();
+    	
+    }
+    
 }
