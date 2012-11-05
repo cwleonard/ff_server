@@ -28,9 +28,11 @@ public class SportsDataInterface {
 	// Constants
 	//private static final String API_KEY = "bzxrzyhacyfnvhbvevfps9zw"; //Our API Key
 	private static final String API_KEY = "ecemnfwb82cgmkqz5fc8nhgw"; //Demo API Key
+	private static final int API_QUERY_DELAY = 1250; //Delay between API queries, in milliseconds
 	
 	private static String  currentTeamId = "";
 	private static Document currentTeamDocument;
+	private static long nextApiQuery = new Date().getTime();
 
     // Suppress default constructor
     private SportsDataInterface() {
@@ -179,11 +181,23 @@ public class SportsDataInterface {
     
     private static void downloadFile(String sourceURL, String destinationPath) {
 		try {
+			//Wait until the next allowed API Query time
+			long now = new Date().getTime();
+			if (now < nextApiQuery) {
+				try {
+					Thread.sleep(nextApiQuery - now);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			//Download the file
 			URL website = new URL(sourceURL);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
 			FileOutputStream fos = new FileOutputStream(destinationPath);
 			fos.getChannel().transferFrom(rbc, 0, 1 << 24);
 			fos.close();
+			now = new Date().getTime();
+			nextApiQuery = now + API_QUERY_DELAY;
 		} catch (MalformedURLException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();

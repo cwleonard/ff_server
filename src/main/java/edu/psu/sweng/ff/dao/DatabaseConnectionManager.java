@@ -38,7 +38,7 @@ public class DatabaseConnectionManager {
 		    	
 		    	String userName = "sweng_ff";
 		    	String password = "rTf4bR6TK15EeHM";
-		    	String url = "jdbc:mysql://192.168.1.80/sweng500";
+		    	String url = "jdbc:mysql://amphibian.com/sweng500";
 		    	Class.forName("com.mysql.jdbc.Driver").newInstance();
 
 				conn = DriverManager.getConnection(url, userName, password);
