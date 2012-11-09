@@ -15,15 +15,18 @@ import edu.psu.sweng.ff.common.Team;
 public class RosterDAO extends BaseDAO implements RosterStore {
 
 	private final static String SELECT_BY_TEAM = "SELECT " +
-		"starter, playerid FROM ff_rosters WHERE team_id = ? and week = ?";
+		"starter, playerid FROM ff_roster_player WHERE team_id = ? and week = ?";
 	
 	private final static String STORE = "INSERT INTO ff_rosters (team_id, " +
-		"week, starter, playerid) VALUES (?, ?, ?, ?)";
+		"week) VALUES (?, ?)";
+	
+	private final static String STORE_PLAYER = "INSERT INTO ff_roster_player (team_id, " +
+			"week, starter, playerid) VALUES (?, ?, ?, ?)";
 	
 	private final static String CLEAR = "DELETE FROM ff_rosters WHERE " +
 		"team_id = ? AND week = ?";
 
-	private final static String REMOVE = "DELETE FROM ff_rosters WHERE team_id = ?";
+	private final static String REMOVE = "DELETE FROM ff_roster WHERE team_id = ?";
 	
 	public Roster loadByTeamAndWeek(Team t, int week) {
 
@@ -157,13 +160,26 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			close(stmt0);
 		}
 		
+		try {
+			
+			stmt0 = conn.prepareStatement(STORE);
+			stmt0.setInt(1, teamId);
+			stmt0.setInt(2, week);
+			stmt0.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(stmt0);
+		}
+		
 		for (Iterator<Player> ips = starters.iterator(); ips.hasNext();) {
 
 			Player p = ips.next();
 			
 			try {
 
-				stmt1 = conn.prepareStatement(STORE);
+				stmt1 = conn.prepareStatement(STORE_PLAYER);
 				stmt1.setInt(1, teamId);
 				stmt1.setInt(2, week);
 				stmt1.setBoolean(3, true);
@@ -185,7 +201,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			
 			try {
 
-				stmt1 = conn.prepareStatement(STORE);
+				stmt1 = conn.prepareStatement(STORE_PLAYER);
 				stmt1.setInt(1, teamId);
 				stmt1.setInt(2, week);
 				stmt1.setBoolean(3, false);
