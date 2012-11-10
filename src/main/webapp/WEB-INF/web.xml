@@ -18,5 +18,9 @@
     <servlet-name>Jersey Web Application</servlet-name>
     <url-pattern>/resource/*</url-pattern>
   </servlet-mapping>  
-  
+
+  <listener>
+    <listener-class>edu.psu.sweng.ff.webapp.ApplicationWatcher</listener-class>
+  </listener>
+	
 </web-app>
