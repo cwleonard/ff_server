@@ -1,12 +1,15 @@
 package edu.psu.sweng.ff.webapp;
 
+import static org.quartz.CalendarIntervalScheduleBuilder.calendarIntervalSchedule;
+import static org.quartz.DailyTimeIntervalScheduleBuilder.dailyTimeIntervalSchedule;
 import static org.quartz.DateBuilder.futureDate;
 import static org.quartz.DateBuilder.tomorrowAt;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.TriggerKey.triggerKey;
-import static org.quartz.CalendarIntervalScheduleBuilder.*;
+
+import java.util.Calendar;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -15,10 +18,13 @@ import org.quartz.DateBuilder.IntervalUnit;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.TimeOfDay;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
+import edu.psu.sweng.ff.jobs.DatabaseUpdateJob;
 import edu.psu.sweng.ff.jobs.TestJob;
+import edu.psu.sweng.ff.jobs.WeeklyMaintenanceJob;
 
 public class ApplicationWatcher implements ServletContextListener {
 
@@ -60,11 +66,11 @@ public class ApplicationWatcher implements ServletContextListener {
 					.withSchedule(
 							simpleSchedule().withIntervalInHours(1)
 									.repeatForever())
-					.startAt(futureDate(5, IntervalUnit.MINUTE)).build();			
+					.startAt(futureDate(5, IntervalUnit.MINUTE)).build();
 
 			// now make points database update job
 			
-			JobDetail pointsjob = newJob(TestJob.class).withIdentity(
+			JobDetail pointsjob = newJob(DatabaseUpdateJob.class).withIdentity(
 					"Points Update Job").build();
 	
 			Trigger pointstrigger = newTrigger()
@@ -72,11 +78,25 @@ public class ApplicationWatcher implements ServletContextListener {
 					.withSchedule(
 							calendarIntervalSchedule()
 								.withIntervalInDays(1))
-					.startAt(tomorrowAt(0, 1, 0)).build();
+					.startAt(tomorrowAt(0, 10, 0)).build();
 
+			// now make weekly maintenance update job
+			
+			JobDetail maintjob = newJob(WeeklyMaintenanceJob.class).withIdentity(
+					"Weekly Maintenance Job").build();
+	
+			Trigger mainttrigger = newTrigger()
+					.withIdentity(triggerKey("maintenanceTrigger", DEFAULT_TRIGGER_GROUP))
+					.withSchedule(
+							dailyTimeIntervalSchedule()
+								.onDaysOfTheWeek(Calendar.FRIDAY)
+								.startingDailyAt(new TimeOfDay(0, 0, 0)))
+					.build();
+			
 			// schedule the jobs
 			scheduler.scheduleJob(job, trigger);
 			scheduler.scheduleJob(pointsjob, pointstrigger);
+			scheduler.scheduleJob(maintjob, mainttrigger);
 
 			// start the scheduler
 			scheduler.start();
