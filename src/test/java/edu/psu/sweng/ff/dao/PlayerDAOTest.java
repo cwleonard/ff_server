@@ -23,24 +23,24 @@ import edu.psu.sweng.ff.common.Player;
 public class PlayerDAOTest {
 
 	
-	@Test
-	public void testStore() {
-		
-		String[] testFiles = getTestFilenames();
-		
-		for (int i = 0; i < testFiles.length; i++) {
-			Document doc = parseXmlFile(new File(testFiles[i]));
-			List<Player> players = getPlayers(doc);
-		
-			PlayerDAO dao = new PlayerDAO();
-			Iterator<Player> pi = players.iterator();
-			while (pi.hasNext()) {
-				Player p = pi.next();
-				assertTrue(dao.store(p));
-			}
-		}
-		
-	}
+//	@Test
+//	public void testStore() {
+//		
+//		String[] testFiles = getTestFilenames();
+//		
+//		for (int i = 0; i < testFiles.length; i++) {
+//			Document doc = parseXmlFile(new File(testFiles[i]));
+//			List<Player> players = getPlayers(doc);
+//		
+//			PlayerDAO dao = new PlayerDAO();
+//			Iterator<Player> pi = players.iterator();
+//			while (pi.hasNext()) {
+//				Player p = pi.next();
+//				assertTrue(dao.store(p));
+//			}
+//		}
+//		
+//	}
 	
 	private String[] getTestFilenames() {
 		

@@ -160,7 +160,7 @@ public class MemberController {
 		}
 		
 		// you can only update yourself
-		if (requester.getUserName() != member.getUserName()) {
+		if (!requester.equals(member)) {
 			System.out.println("member " + requester.getUserName() + " cannot update "
 					+ member.getUserName());
 			return Response.status(Status.UNAUTHORIZED).build();

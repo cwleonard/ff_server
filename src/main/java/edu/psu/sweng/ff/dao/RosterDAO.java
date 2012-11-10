@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.Player;
 import edu.psu.sweng.ff.common.Roster;
 import edu.psu.sweng.ff.common.RosterStore;
@@ -23,8 +24,11 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 	private final static String STORE_PLAYER = "INSERT INTO ff_roster_player (team_id, " +
 			"week, starter, player_id) VALUES (?, ?, ?, ?)";
 	
-	private final static String CLEAR = "DELETE FROM ff_rosters WHERE " +
+	private final static String CLEAR_ROSTER = "DELETE FROM ff_rosters WHERE " +
 		"team_id = ? AND week = ?";
+
+	private final static String CLEAR_PLAYERS = "DELETE FROM ff_roster_player WHERE " +
+	"team_id = ? AND week = ?";
 
 	private final static String REMOVE = "DELETE FROM ff_roster WHERE team_id = ?";
 	
@@ -133,7 +137,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		
 	}
 
-	public void store(Roster r) {
+	public void store(Roster r) throws DatabaseException {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
@@ -149,7 +153,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		
 		try {
 			
-			stmt0 = conn.prepareStatement(CLEAR);
+			stmt0 = conn.prepareStatement(CLEAR_PLAYERS);
 			stmt0.setInt(1, teamId);
 			stmt0.setInt(2, week);
 			stmt0.executeUpdate();
@@ -159,7 +163,21 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		} finally {
 			close(stmt0);
 		}
-		
+
+		try {
+			
+			stmt0 = conn.prepareStatement(CLEAR_ROSTER);
+			stmt0.setInt(1, teamId);
+			stmt0.setInt(2, week);
+			stmt0.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DatabaseException();
+		} finally {
+			close(stmt0);
+		}
+
 		try {
 			
 			stmt0 = conn.prepareStatement(STORE);
@@ -169,6 +187,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new DatabaseException();
 		} finally {
 			close(stmt0);
 		}
@@ -189,6 +208,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				throw new DatabaseException();
 			} finally {
 				close(stmt1);
 			}
@@ -211,6 +231,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				throw new DatabaseException();
 			} finally {
 				close(stmt1);
 			}

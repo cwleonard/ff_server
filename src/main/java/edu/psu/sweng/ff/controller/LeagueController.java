@@ -26,6 +26,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import edu.psu.sweng.ff.common.Draft;
+import edu.psu.sweng.ff.common.DraftException;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Player;
@@ -300,7 +301,11 @@ public class LeagueController {
 					+ " for draft round "
 					+ draft.getRound() + " in league " + l.getId());
 			
-			draft.draftPlayer(player);
+			try {
+				draft.draftPlayer(player);
+			} catch (DraftException e) {
+				throw new WebApplicationException();
+			}
 			
 		} else {
 			

@@ -60,9 +60,9 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
 		"FROM ff_players WHERE position IN ";
 
-	private final static String RESTRICT = " AND playerid NOT IN (SELECT playerid " +
-		"FROM ff_rosters, ff_teams WHERE ff_teams.league_id = ? AND " +
-		"ff_rosters.team_id = ff_teams.id)";
+	private final static String RESTRICT = " AND playerid NOT IN (SELECT player_id " +
+		"FROM ff_roster_player, ff_teams WHERE ff_teams.league_id = ? AND " +
+		"ff_roster_player.team_id = ff_teams.id)";
 	
 	
 	public List<Player> getByType(String type) {
