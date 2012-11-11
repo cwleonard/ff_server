@@ -6,34 +6,10 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
 
 public class LeagueDAO extends BaseDAO {
-
-
-//	private final static String SELECT_BY_ID = "SELECT name, commissioner, autodraft, " +
-//		"week, season FROM leagues WHERE id = ?";
-//
-//	private final static String SELECT_BY_MEMBER_ID = "SELECT l.id, l.name, l.commissioner, l.autodraft, " +
-//		"l.week, l.season FROM leagues l, league_member lm WHERE lm.league_id = l.id AND " +
-//		"lm.member_id = ?";
-//
-//	private final static String STORE = "INSERT INTO leagues (name, commissioner, autodraft, " +
-//		"week, season) VALUES (?, ?, ?, ?, ?)";
-//
-//	private final static String UPDATE = "UPDATE leagues SET name = ?, commissioner = ?, " +
-//		"autodraft = ?, week = ?, season = ? WHERE id = ?";
-//	
-//	private final static String STORE_MEMBER_RELATIONSHIP = "INSERT INTO league_member " +
-//		"(league_id, member_id) VALUES (?, ?)";
-//	
-//	private final static String LOAD_DRAFT_BY_LEAGUE_ID = "SELECT id, automatic, round, team_index, member_id " +
-//			"FROM drafts WHERE league_id = ?";
-//
-//	private final static String SAVE_DRAFT = "INSERT INTO drafts (id, automatic, round, team_index, member_id) " +
-//		"VALUES (?, ?, ?, ?, ?)";
 
 	private final static String LOAD_ALL = "SELECT id, name, commissioner_id FROM ff_leagues";
 	
