@@ -57,7 +57,7 @@ public class ScheduleGeneratorTest {
 		
 		int teams[][] = new int[5][5];
 		
-		for (int w = 1; w < 13; w++) {
+		for (int w = 1; w < 12; w++) {
 			
 			List<Matchup> week = sched.getMatchups(w);
 			assertTrue(week.size() > 0);
@@ -72,6 +72,15 @@ public class ScheduleGeneratorTest {
 				
 			}
 			
+		}
+		
+		for (int i = 0; i < teams.length; i++) {
+			for (int j = 0; j < teams[i].length; j++) {
+				System.out.print("[");
+				System.out.print(teams[i][j]);
+				System.out.print("]");
+			}
+			System.out.println();
 		}
 
 		// make sure teams aren't matched against themselves
