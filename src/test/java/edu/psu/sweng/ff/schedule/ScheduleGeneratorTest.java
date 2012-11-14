@@ -66,9 +66,10 @@ public class ScheduleGeneratorTest {
 			while (mit.hasNext()) {
 				
 				Matchup m = mit.next();
-				assertTrue(m.getWeek() == w);
+				assertEquals(w, m.getWeek());
 				assertFalse(m.getTeamA() == m.getTeamB());
 				teams[m.getTeamA()-1][m.getTeamB()-1]++;
+				teams[m.getTeamB()-1][m.getTeamA()-1]++;
 				
 			}
 			
@@ -92,7 +93,7 @@ public class ScheduleGeneratorTest {
 		for (int i = 0; i < 5; i++) {
 			for (int j = 0; j < 5; j++) {
 				if (i != j) {
-					assertTrue(teams[i][i] > 0);
+					assertTrue("need > 0 at " + i + "," + j, teams[i][j] > 0);
 				}
 			}
 		}
