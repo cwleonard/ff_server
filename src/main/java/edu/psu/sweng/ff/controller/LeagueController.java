@@ -35,6 +35,7 @@ import edu.psu.sweng.ff.dao.MemberDAO;
 import edu.psu.sweng.ff.dao.PlayerDAO;
 import edu.psu.sweng.ff.dao.RosterDAO;
 import edu.psu.sweng.ff.notification.EmailNotifier;
+import edu.psu.sweng.ff.schedule.ScheduleGenerator;
 
 @Path("/league")
 public class LeagueController {
@@ -209,6 +210,8 @@ public class LeagueController {
 			
 				draft.setPlayerSource(new PlayerDAO());
 				l.startDraft();
+				ScheduleGenerator sgen = new ScheduleGenerator();
+				l.setSchedule(sgen.generateSchedule(l));
 				dao.update(l);
 			
 			} catch (Exception e) {

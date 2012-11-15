@@ -16,6 +16,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Matchup;
 import edu.psu.sweng.ff.common.Member;
@@ -73,12 +74,21 @@ public class ScheduleDAOTest {
 		week2.add(m2b);
 		week2.add(m2c);
 		
-		assertTrue(dao.store(s));
+		try {
+			assertTrue(dao.store(s));
+		} catch (DatabaseException e) {
+			fail(e.getMessage());
+		}
 		
 		// now read it back
 		League l = new League();
 		l.setId(9999);
-		Schedule s2 = dao.loadByLeague(l);
+		Schedule s2 = null;
+		try {
+			s2 = dao.loadByLeague(l);
+		} catch (DatabaseException e1) {
+			fail(e1.getMessage());
+		}
 		
 		List<Matchup> oWeek1 = s2.getMatchups(1);
 		List<Matchup> oWeek2 = s2.getMatchups(2);
@@ -94,7 +104,11 @@ public class ScheduleDAOTest {
 		assertTrue(oWeek2.contains(m2b));
 		assertTrue(oWeek2.contains(m2c));
 
-		assertTrue(dao.remove(s));
+		try {
+			assertTrue(dao.remove(s));
+		} catch (DatabaseException e) {
+			fail(e.getMessage());
+		}
 		
 	}
 

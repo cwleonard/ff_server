@@ -49,6 +49,7 @@ public class LeagueDAO extends BaseDAO {
 			MemberDAO mdao = new MemberDAO();
 			TeamDAO tdao = new TeamDAO();
 			DraftDAO ddao = new DraftDAO();
+			ScheduleDAO sdao = new ScheduleDAO();
 
 			while (rs.next()) {
 				
@@ -58,6 +59,7 @@ public class LeagueDAO extends BaseDAO {
 				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
 				l.setDraft(ddao.loadByLeague(l));
 				l.setTeams(tdao.loadByLeague(l));
+				l.setSchedule(sdao.loadByLeague(l));
 				
 				ll.add(l);
 			}
@@ -100,6 +102,8 @@ public class LeagueDAO extends BaseDAO {
 				l.setCommissioner(mdao.loadByUserName(rs.getString(2)));
 				DraftDAO ddao = new DraftDAO();
 				l.setDraft(ddao.loadByLeague(l));
+				ScheduleDAO sdao = new ScheduleDAO();
+				l.setSchedule(sdao.loadByLeague(l));
 
 				TeamDAO tdao = new TeamDAO();
 				l.setTeams(tdao.loadByLeague(l));
@@ -140,6 +144,7 @@ public class LeagueDAO extends BaseDAO {
 			MemberDAO mdao = new MemberDAO();
 			TeamDAO tdao = new TeamDAO();
 			DraftDAO ddao = new DraftDAO();
+			ScheduleDAO sdao = new ScheduleDAO();
 
 			while (rs.next()) {
 				
@@ -149,6 +154,7 @@ public class LeagueDAO extends BaseDAO {
 				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
 				l.setDraft(ddao.loadByLeague(l));
 				l.setTeams(tdao.loadByLeague(l));
+				l.setSchedule(sdao.loadByLeague(l));
 				
 				ll.add(l);
 			}
@@ -228,6 +234,8 @@ public class LeagueDAO extends BaseDAO {
 			} else {
 				DraftDAO ddao = new DraftDAO();
 				ddao.remove(l.getDraft());
+				ScheduleDAO sdao = new ScheduleDAO();
+				sdao.remove(l.getSchedule());
 			}
 
 		} catch (Exception e) {
@@ -262,7 +270,10 @@ public class LeagueDAO extends BaseDAO {
 			
 			DraftDAO ddao = new DraftDAO();
 			ddao.store(l.getDraft());
-
+			
+			ScheduleDAO sdao = new ScheduleDAO();
+			sdao.store(l.getSchedule());
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;
