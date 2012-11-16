@@ -3,10 +3,13 @@ package edu.psu.sweng.ff.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Member;
+import edu.psu.sweng.ff.common.Team;
 
 public class DraftDAO extends BaseDAO {
 	
@@ -20,8 +23,15 @@ public class DraftDAO extends BaseDAO {
 
 	private final static String UPDATE = "UPDATE ff_drafts SET automatic = ?, round = ?, "
 			+ "team_index = ?, member_id = ? WHERE league_id = ?";
+	
+	private final static String STORE_ORDER = "INSERT INTO ff_draft_order " +
+			"(league_id, round_order, team_id) VALUES (?, ?, ?)";
+	
+	private final static String LOAD_ORDER = "SELECT team_id FROM ff_draft_order " +
+			"WHERE league_id = ? ORDER BY round_order";
 
 	private final static String REMOVE = "DELETE FROM ff_drafts WHERE league_id = ?";
+	private final static String REMOVE_ORDER = "DELETE FROM ff_draft_order WHERE league_id = ?";
 	
 	public Draft loadByLeague(League l) {
 
@@ -31,32 +41,47 @@ public class DraftDAO extends BaseDAO {
 		Connection conn = dbcm.getConnection();
 
 		PreparedStatement stmt1 = null;
-		ResultSet rs = null;
+		PreparedStatement stmt2 = null;
+		ResultSet rs1 = null;
+		ResultSet rs2 = null;
 		
 		try {
 
 			stmt1 = conn.prepareStatement(SELECT_BY_LEAGUE);
 			stmt1.setInt(1, l.getId());
 			
-			rs = stmt1.executeQuery();
+			rs1 = stmt1.executeQuery();
 			
-			if (rs.next()) {
+			if (rs1.next()) {
 				
 				d = new Draft();
 				d.setLeagueId(l.getId());
-				d.setAutomatic(rs.getBoolean(1));
-				d.setRound(rs.getInt(2));
-				d.setTeamIndex(rs.getInt(3));
+				d.setAutomatic(rs1.getBoolean(1));
+				d.setRound(rs1.getInt(2));
+				d.setTeamIndex(rs1.getInt(3));
 				MemberDAO mdao = new MemberDAO();
-				d.setWaitingFor(mdao.loadByUserName(rs.getString(4)));
+				d.setWaitingFor(mdao.loadByUserName(rs1.getString(4)));
+				
+				List<Team> order = new ArrayList<Team>();
+				stmt2 = conn.prepareStatement(LOAD_ORDER);
+				stmt2.setInt(1, l.getId());
+				rs2 = stmt2.executeQuery();
+				TeamDAO tdao = new TeamDAO();
+				while (rs2.next()) {
+					Team t = tdao.loadById(rs2.getInt(1), conn);
+					order.add(t);
+				}
+				d.setTeamOrder(order);
 
 			}
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			close(rs);
+			close(rs2);
+			close(rs1);
 			close(stmt1);
+			close(stmt2);
 			close(conn);
 		}
 		
@@ -71,6 +96,7 @@ public class DraftDAO extends BaseDAO {
 
 		PreparedStatement stmt1 = null;
 		PreparedStatement stmt2 = null;
+		PreparedStatement stmt3 = null;
 		ResultSet rs = null;
 
 		try {
@@ -94,6 +120,7 @@ public class DraftDAO extends BaseDAO {
 				stmt2.setInt(5, d.getLeagueId());
 				stmt2.executeUpdate();
 			} else {
+				
 				// not there yet. insert.
 				stmt2 = conn.prepareStatement(STORE);
 				stmt2.setInt(1, d.getLeagueId());
@@ -107,6 +134,19 @@ public class DraftDAO extends BaseDAO {
 					stmt2.setNull(5, java.sql.Types.VARCHAR);
 				}
 				stmt2.executeUpdate();
+				
+				// now store the team draft order
+				if (d.getTeamOrder() != null) {
+					stmt3 = conn.prepareStatement(STORE_ORDER);
+					stmt3.setInt(1, d.getLeagueId());
+					for (int i = 0; i < d.getTeamOrder().size(); i++) {
+						Team t = d.getTeamOrder().get(i);
+						stmt3.setInt(2, i);
+						stmt3.setInt(3, t.getId());
+						stmt3.executeUpdate();
+					}
+				}
+				
 			}
 			
 		} catch (Exception e) {
@@ -116,6 +156,7 @@ public class DraftDAO extends BaseDAO {
 			close(rs);
 			close(stmt1);
 			close(stmt2);
+			close(stmt3);
 			close(conn);
 		}
 		
@@ -135,7 +176,11 @@ public class DraftDAO extends BaseDAO {
 			stmt1 = conn.prepareStatement(REMOVE);
 			stmt1.setInt(1, d.getLeagueId());
 			stmt1.executeUpdate();
-			
+
+			stmt1 = conn.prepareStatement(REMOVE_ORDER);
+			stmt1.setInt(1, d.getLeagueId());
+			stmt1.executeUpdate();
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			return false;

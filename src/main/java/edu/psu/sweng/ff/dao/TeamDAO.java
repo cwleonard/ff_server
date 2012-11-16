@@ -146,10 +146,21 @@ public class TeamDAO extends BaseDAO {
 
 	public Team loadById(int id) {
 
-		Team t = null;
-		
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
+		Team t = null;
+		try {
+			t = this.loadById(id, conn);
+		} finally {
+			close(conn);
+		}
+		return t;
+		
+	}
+	
+	public Team loadById(int id, Connection conn) {
+		
+		Team t = null;
 
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
@@ -184,7 +195,6 @@ public class TeamDAO extends BaseDAO {
 		} finally {
 			close(rs);
 			close(stmt1);
-			close(conn);
 		}
 		
 		return t;
