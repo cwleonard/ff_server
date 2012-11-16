@@ -32,7 +32,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 	private final static String REMOVE = "DELETE FROM ff_roster WHERE team_id = ?";
 	
-	public Roster loadByTeamAndWeek(Team t, int week) {
+	public Roster loadByTeamAndWeek(Team t, int week) throws DatabaseException {
 
 		Roster r = new Roster();
 		r.setTeamId(t.getId());
@@ -70,6 +70,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new DatabaseException();
 		} finally {
 			close(rs);
 			close(stmt1);
@@ -80,7 +81,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		
 	}
 	
-	public List<Roster> loadByTeam(Team t) {
+	public List<Roster> loadByTeam(Team t) throws DatabaseException {
 
 		List<Roster> rosters = new ArrayList<Roster>();
 		
@@ -90,7 +91,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
 
-		for (int w = 1; w <= 17; w++) {
+		for (int w = 1; w <= 13; w++) {
 
 			Roster r = new Roster();
 			r.setTeamId(t.getId());
@@ -122,12 +123,16 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				throw new DatabaseException();
 			} finally {
 				close(rs);
 				close(stmt1);
 			}
 			
-			rosters.add(r);
+			// only include a roster if it has players
+			if (r.getStartingPlayers().size() > 0 || r.getBenchPlayers().size() > 0) {
+				rosters.add(r);
+			}
 
 		}
 
@@ -160,6 +165,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new DatabaseException();
 		} finally {
 			close(stmt0);
 		}
