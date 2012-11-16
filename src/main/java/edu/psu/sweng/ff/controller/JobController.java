@@ -45,6 +45,7 @@ public class JobController {
 			html.append("<th>Group Name</th>");
 			html.append("<th>Job Name</th>");
 			html.append("<th>Next Run</th>");
+			//html.append("<th>&nbsp;</th>");
 			html.append("</tr></thead>");
 			html.append("<tbody>");
 			
@@ -66,6 +67,7 @@ public class JobController {
 					html.append("<td>").append(jk.getGroup()).append("</td>");
 					html.append("<td>").append(jk.getName()).append("</td>");
 					html.append("<td>").append(t.getNextFireTime()).append("</td>");
+					//html.append("<td><a href=\"exec/").append(jk.getName()).append("\">Run Now</a></td>");
 					html.append("</tr>");
 
 				}
