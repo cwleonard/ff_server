@@ -107,7 +107,7 @@ public class ApplicationWatcher implements ServletContextListener {
 		
 	}
 	
-	private Date nextFriday() {
+	Date nextFriday() {
 		
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date());

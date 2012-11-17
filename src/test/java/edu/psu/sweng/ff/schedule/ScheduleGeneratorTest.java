@@ -9,11 +9,8 @@ import org.junit.Test;
 
 import edu.psu.sweng.ff.common.League;
 import edu.psu.sweng.ff.common.Matchup;
-import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Schedule;
 import edu.psu.sweng.ff.common.Team;
-import edu.psu.sweng.ff.notification.Email;
-import edu.psu.sweng.ff.notification.EmailNotifier;
 
 public class ScheduleGeneratorTest {
 
