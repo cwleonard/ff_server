@@ -10,6 +10,7 @@ import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.TriggerKey.triggerKey;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -84,14 +85,13 @@ public class ApplicationWatcher implements ServletContextListener {
 			
 			JobDetail maintjob = newJob(WeeklyMaintenanceJob.class).withIdentity(
 					"Weekly Maintenance Job").build();
-	
+
 			Trigger mainttrigger = newTrigger()
 					.withIdentity(triggerKey("maintenanceTrigger", DEFAULT_TRIGGER_GROUP))
 					.withSchedule(
-							dailyTimeIntervalSchedule()
-								.onDaysOfTheWeek(Calendar.FRIDAY)
-								.startingDailyAt(new TimeOfDay(0, 0, 0)))
-					.build();
+							calendarIntervalSchedule()
+								.withIntervalInWeeks(1))
+					.startAt(nextFriday()).build();
 			
 			// schedule the jobs
 			scheduler.scheduleJob(job, trigger);
@@ -105,6 +105,32 @@ public class ApplicationWatcher implements ServletContextListener {
             se.printStackTrace();
         }
 		
+	}
+	
+	private Date nextFriday() {
+		
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date());
+
+		int weekday = cal.get(Calendar.DAY_OF_WEEK);
+		if (weekday > Calendar.FRIDAY) {
+			int add = Calendar.FRIDAY + (weekday % 7);
+			cal.add(Calendar.DAY_OF_YEAR, add);
+		} else if (weekday == Calendar.FRIDAY) {
+			cal.add(Calendar.DAY_OF_YEAR, 7);
+		} else {
+			cal.add(Calendar.DAY_OF_YEAR, Calendar.FRIDAY - cal.get(Calendar.DAY_OF_WEEK));
+		}
+		
+		cal.set(Calendar.HOUR, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		cal.set(Calendar.AM_PM, Calendar.AM);
+		
+		return cal.getTime();
+
 	}
 	
 }

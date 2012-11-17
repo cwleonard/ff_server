@@ -188,14 +188,25 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		return lp;
 		
 	}
-	
+
 	public Player getById(String id) {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+		Player player = null;
+		try {
+			player = this.getById(id, conn);
+		} finally {
+			close(conn);
+		}
+		return player;
+		
+	}
+	
+	public Player getById(String id, Connection conn) {
 		
 		Player p = null;
 		
-		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
-		Connection conn = dbcm.getConnection();
-
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
 		
@@ -227,7 +238,6 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		} finally {
 			close(rs);
 			close(stmt1);
-			close(conn);
 		}
 		
 		return p;

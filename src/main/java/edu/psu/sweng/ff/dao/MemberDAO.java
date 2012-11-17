@@ -6,48 +6,26 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.Invitation;
 import edu.psu.sweng.ff.common.Member;
 
 public class MemberDAO extends BaseDAO {
 
-//	private final static String AUTH = "SELECT token FROM members " +
-//	    "WHERE username = ? AND passwordhash = ?";
-
 	private final static String AUTH = "SELECT token FROM ff_members " +
     	"WHERE username = ? AND passwordhash = ?";
-
-//	private final static String SELECT_BY_ID = "SELECT firstname, lastname, " +
-//		"username, email, mobilenumber, hideemail, hidename, " +
-//		"passwordhash, token FROM members WHERE id = ?";
-
-//	private final static String SELECT_BY_USERNAME = "SELECT id, firstname, lastname, " +
-//		"username, email, mobilenumber, hideemail, hidename, " +
-//		"passwordhash, token FROM members WHERE username = ?";
 
 	private final static String SELECT_BY_USERNAME = "SELECT firstname, lastname, " +
 		"username, emailaddress, mobilenumber, hideemail, hidename, " +
 		"passwordhash, token FROM ff_members WHERE username = ?";
 
-//	private final static String SELECT_BY_TOKEN = "SELECT id, firstname, lastname, " +
-//		"username, email, mobilenumber, hideemail, hidename, " +
-//		"passwordhash FROM members WHERE token = ?";
-
 	private final static String SELECT_BY_TOKEN = "SELECT firstname, lastname, " +
 		"username, emailaddress, mobilenumber, hideemail, hidename, " +
 		"passwordhash FROM ff_members WHERE token = ?";
 
-//	private final static String STORE = "INSERT INTO members (firstname, lastname, username, " +
-//			"email, mobilenumber, hideemail, hidename, passwordhash, token) VALUES (" +
-//			"?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
 	private final static String STORE = "INSERT INTO ff_members (firstname, lastname, username, " +
 		"emailaddress, mobilenumber, hideemail, hidename, passwordhash, token) VALUES (" +
 		"?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-//	private final static String UPDATE = "UPDATE members SET firstname = ?, lastname = ?, " +
-//		"username = ?, email = ?, mobilenumber = ?, hideemail = ?, hidename = ?, " +
-//		"passwordhash = ?, token = ? WHERE id = ?";
 
 	private final static String UPDATE = "UPDATE ff_members SET firstname = ?, lastname = ?, " +
 		"username = ?, emailaddress = ?, mobilenumber = ?, hideemail = ?, hidename = ?, " +
@@ -94,60 +72,25 @@ public class MemberDAO extends BaseDAO {
 		return token;
 
 	}
+
+	public Member loadByUserName(String un) throws DatabaseException {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+		Member member = null;
+		try {
+			member = this.loadByUserName(un, conn);
+		} finally {
+			close(conn);
+		}
+		return member;
+		
+	}
 	
-//	public Member loadById(int id) {
-//
-//		Member m = null;
-//		
-//		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
-//		Connection conn = dbcm.getConnection();
-//
-//		PreparedStatement stmt1 = null;
-//		ResultSet rs = null;
-//		
-//		try {
-//
-//			stmt1 = conn.prepareStatement(SELECT_BY_ID);
-//			stmt1.setInt(1, id);
-//			
-//			rs = stmt1.executeQuery();
-//			
-//			if (rs.next()) {
-//				
-//				m = new Member();
-//				m.setId(id);
-//				m.setFirstName(rs.getString(1));
-//				m.setLastName(rs.getString(2));
-//				m.setUserName(rs.getString(3));
-//				m.setEmail(rs.getString(4));
-//				m.setMobileNumber(rs.getString(5));
-//				m.setHideEmail(rs.getBoolean(6));
-//				m.setHideName(rs.getBoolean(7));
-//				m.setPasswordHash(rs.getString(8));
-//				m.setAccessToken(rs.getString(9));
-//				m.setInvitations(this.checkForInvitations(m));
-//				
-//			}
-//			
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		} finally {
-//			close(rs);
-//			close(stmt1);
-//			close(conn);
-//		}
-//		
-//		return m;
-//		
-//	}
-	
-	public Member loadByUserName(String un) {
+	public Member loadByUserName(String un, Connection conn) throws DatabaseException {
 		
 		Member m = null;
 		
-		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
-		Connection conn = dbcm.getConnection();
-
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
 		
@@ -161,16 +104,6 @@ public class MemberDAO extends BaseDAO {
 			if (rs.next()) {
 				
 				m = new Member();
-//				m.setId(rs.getInt(1));
-//				m.setFirstName(rs.getString(2));
-//				m.setLastName(rs.getString(3));
-//				m.setUserName(rs.getString(4));
-//				m.setEmail(rs.getString(5));
-//				m.setMobileNumber(rs.getString(6));
-//				m.setHideEmail(rs.getBoolean(7));
-//				m.setHideName(rs.getBoolean(8));
-//				m.setPasswordHash(rs.getString(9));
-//				m.setAccessToken(rs.getString(10));
 				m.setFirstName(rs.getString(1));
 				m.setLastName(rs.getString(2));
 				m.setUserName(rs.getString(3));
@@ -186,10 +119,10 @@ public class MemberDAO extends BaseDAO {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			throw new DatabaseException();
 		} finally {
 			close(rs);
 			close(stmt1);
-			close(conn);
 		}
 		
 		return m;

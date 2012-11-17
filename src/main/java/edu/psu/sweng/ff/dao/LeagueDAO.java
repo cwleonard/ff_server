@@ -56,10 +56,10 @@ public class LeagueDAO extends BaseDAO {
 				League l = new League();
 				l.setId(rs.getInt(1));
 				l.setName(rs.getString(2));
-				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
-				l.setDraft(ddao.loadByLeague(l));
-				l.setTeams(tdao.loadByLeague(l));
-				l.setSchedule(sdao.loadByLeague(l));
+				l.setCommissioner(mdao.loadByUserName(rs.getString(3), conn));
+				l.setDraft(ddao.loadByLeague(l, conn));
+				l.setTeams(tdao.loadByLeague(l, conn));
+				l.setSchedule(sdao.loadByLeague(l, conn));
 				
 				ll.add(l);
 			}
@@ -99,14 +99,14 @@ public class LeagueDAO extends BaseDAO {
 				l.setId(id);
 				l.setName(rs.getString(1));
 				MemberDAO mdao = new MemberDAO();
-				l.setCommissioner(mdao.loadByUserName(rs.getString(2)));
+				l.setCommissioner(mdao.loadByUserName(rs.getString(2), conn));
 				DraftDAO ddao = new DraftDAO();
-				l.setDraft(ddao.loadByLeague(l));
+				l.setDraft(ddao.loadByLeague(l, conn));
 				ScheduleDAO sdao = new ScheduleDAO();
-				l.setSchedule(sdao.loadByLeague(l));
+				l.setSchedule(sdao.loadByLeague(l, conn));
 
 				TeamDAO tdao = new TeamDAO();
-				l.setTeams(tdao.loadByLeague(l));
+				l.setTeams(tdao.loadByLeague(l, conn));
 
 			}
 			
@@ -151,10 +151,10 @@ public class LeagueDAO extends BaseDAO {
 				League l = new League();
 				l.setId(rs.getInt(1));
 				l.setName(rs.getString(2));
-				l.setCommissioner(mdao.loadByUserName(rs.getString(3)));
-				l.setDraft(ddao.loadByLeague(l));
-				l.setTeams(tdao.loadByLeague(l));
-				l.setSchedule(sdao.loadByLeague(l));
+				l.setCommissioner(mdao.loadByUserName(rs.getString(3), conn));
+				l.setDraft(ddao.loadByLeague(l, conn));
+				l.setTeams(tdao.loadByLeague(l, conn));
+				l.setSchedule(sdao.loadByLeague(l, conn));
 				
 				ll.add(l);
 			}

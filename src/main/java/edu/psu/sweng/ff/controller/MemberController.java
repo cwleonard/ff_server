@@ -14,6 +14,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -23,6 +24,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.gson.Gson;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.dao.MemberDAO;
 
@@ -105,7 +107,12 @@ public class MemberController {
 		System.out.println(requester.getUserName() + " is loading " + userName);
 		
 		MemberDAO dao = new MemberDAO();
-		Member m = dao.loadByUserName(userName);
+		Member m = null;
+		try {
+			m = dao.loadByUserName(userName);
+		} catch (DatabaseException e) {
+			throw new WebApplicationException(e);
+		}
 		
 		Gson gson = new Gson();
 		String json = gson.toJson(m);
@@ -114,32 +121,6 @@ public class MemberController {
 		
 	}
 
-//	@GET
-//	@Produces({MediaType.APPLICATION_JSON})
-//	@Path("/id/{id}")
-//	public Response getMemberById(
-//		@HeaderParam(TOKEN_HEADER) String token,
-//		@PathParam("id") int id
-//	    )
-//	{
-//
-//		Member requester = this.lookupByToken(token);
-//		if (requester == null) {
-//			System.out.println("unknown token " + token);
-//			return Response.status(Status.UNAUTHORIZED).build();
-//		}
-//		System.out.println(requester.getUserName() + " is loading user " + id);
-//		
-//		MemberDAO dao = new MemberDAO();
-//		Member m = dao.loadById(id);
-//		
-//		Gson gson = new Gson();
-//		String json = gson.toJson(m);
-//
-//		return Response.ok().entity(json).build();
-//		
-//	}
-	
 	@PUT
 	@Path("/{username}")
 	public Response updateMember(
@@ -189,18 +170,12 @@ public class MemberController {
 		
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
-//		int id = dao.store(member);
-//		member.setId(id);
-//		
-//		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
-//		URI memberUri = ub.path("id/" + id).build();
 		boolean ok = dao.store(member);
 		if (ok) {
 			
 			UriBuilder ub = uriInfo.getAbsolutePathBuilder();
 			URI memberUri = ub.path(member.getUserName()).build();
 			
-//			System.out.println("created new member " + member.getUserName() + " with id " + member.getId());
 			System.out.println("created new member " + member.getUserName());
 			
 			response = Response.created(memberUri).header(TOKEN_HEADER, member.getAccessToken()).build();

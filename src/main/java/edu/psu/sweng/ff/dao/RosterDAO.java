@@ -80,13 +80,24 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		return r;
 		
 	}
-	
+
 	public List<Roster> loadByTeam(Team t) throws DatabaseException {
 
-		List<Roster> rosters = new ArrayList<Roster>();
-		
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
+		List<Roster> rosters = null;
+		try {
+			rosters = this.loadByTeam(t, conn);
+		} finally {
+			close(conn);
+		}
+		return rosters;
+		
+	}
+	
+	public List<Roster> loadByTeam(Team t, Connection conn) throws DatabaseException {
+
+		List<Roster> rosters = new ArrayList<Roster>();
 
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
@@ -105,13 +116,14 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 				rs = stmt1.executeQuery();
 
+				PlayerDAO pDao = new PlayerDAO();
+
 				while(rs.next()) {
 
 					boolean starter = rs.getBoolean(1);
 					String pid = rs.getString(2);
 
-					PlayerDAO pDao = new PlayerDAO();
-					Player p = pDao.getById(pid);
+					Player p = pDao.getById(pid, conn);
 					
 					if (starter) {
 						r.addStartingPlayer(p);
@@ -136,8 +148,6 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 		}
 
-		close(conn);
-		
 		return rosters;
 		
 	}

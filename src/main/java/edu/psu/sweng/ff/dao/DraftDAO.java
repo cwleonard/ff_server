@@ -35,10 +35,20 @@ public class DraftDAO extends BaseDAO {
 	
 	public Draft loadByLeague(League l) {
 
-		Draft d = null;
-		
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
+		Draft draft = null;
+		try {
+			draft = this.loadByLeague(l, conn);
+		} finally {
+			close(conn);
+		}
+		return draft;
+	}
+	
+	public Draft loadByLeague(League l, Connection conn) {
+
+		Draft d = null;
 
 		PreparedStatement stmt1 = null;
 		PreparedStatement stmt2 = null;
@@ -60,7 +70,7 @@ public class DraftDAO extends BaseDAO {
 				d.setRound(rs1.getInt(2));
 				d.setTeamIndex(rs1.getInt(3));
 				MemberDAO mdao = new MemberDAO();
-				d.setWaitingFor(mdao.loadByUserName(rs1.getString(4)));
+				d.setWaitingFor(mdao.loadByUserName(rs1.getString(4), conn));
 				
 				List<Team> order = new ArrayList<Team>();
 				stmt2 = conn.prepareStatement(LOAD_ORDER);
@@ -82,7 +92,6 @@ public class DraftDAO extends BaseDAO {
 			close(rs1);
 			close(stmt1);
 			close(stmt2);
-			close(conn);
 		}
 		
 		return d;

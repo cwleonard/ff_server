@@ -1,5 +1,6 @@
 package edu.psu.sweng.ff.jobs;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,22 +19,45 @@ import edu.psu.sweng.ff.dao.TeamDAO;
 
 public class WeeklyMaintenanceJob implements Job {
 
+	private int specificWeek = -1;
+	private int specificLeague = -1;
+	
+	public static void main(String[] args) {
+		WeeklyMaintenanceJob job = new WeeklyMaintenanceJob();
+		if (args.length > 0) {
+			job.specificLeague = Integer.parseInt(args[0]);
+		}
+		if (args.length > 1) {
+			job.specificWeek = Integer.parseInt(args[1]);
+		}
+		try {
+			job.execute(null);
+		} catch (JobExecutionException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
 
 		System.out.println("...Running weekly maintenance job.");
 
 		SeasonDAO sdao = new SeasonDAO();
-		try {
-			sdao.nextWeek();
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-			System.out.println("Error incrementing week. Maintenance aborted!");
-			return;
-		}
 		
 		try {
 			
-			int newWeek = sdao.getCurrentWeek();
+			int newWeek = 0;
+			if (specificWeek > 0) {
+				newWeek = specificWeek;
+			} else {
+				try {
+					sdao.nextWeek();
+				} catch (DatabaseException e) {
+					e.printStackTrace();
+					System.out.println("Error incrementing week. Maintenance aborted!");
+					return;
+				}
+				newWeek = sdao.getCurrentWeek();
+			}
 			
 			System.out.println("......setting up for week " + newWeek);
 			
@@ -41,24 +65,31 @@ public class WeeklyMaintenanceJob implements Job {
 			TeamDAO tdao = new TeamDAO();
 			RosterDAO rdao = new RosterDAO();
 			
-			List<League> leagues = ldao.loadAll();
+			List<League> leagues = null;
+			if (specificLeague >= 0) {
+				leagues = new ArrayList<League>();
+				leagues.add(ldao.loadById(specificLeague));
+			} else {
+				leagues = ldao.loadAll();
+			}
+			
 			Iterator<League> lit = leagues.iterator();
 			while (lit.hasNext()) {
 
 				League l = lit.next();
-
+				
 				System.out.println("......working on league " + l.getId()
 						+ " (\"" + l.getName() + "\")");
-				
+
 				List<Team> teams = tdao.loadByLeague(l);
 				Iterator<Team> ti = teams.iterator();
 				while (ti.hasNext()) {
-					
+
 					Team t = ti.next();
-					
+
 					System.out.println(".........working on team " + t.getId()
 							+ "(\"" + t.getName() + "\")");
-					
+
 					Roster r = t.getRoster(newWeek);
 					if (r.getStartingPlayers().size() == 0) {
 						// roster for this week has not been created yet
@@ -68,7 +99,7 @@ public class WeeklyMaintenanceJob implements Job {
 						r.setWeek(newWeek);
 						rdao.store(r);
 					}
-					
+
 				}
 				
 			}

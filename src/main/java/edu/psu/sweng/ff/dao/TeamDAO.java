@@ -14,24 +14,6 @@ import edu.psu.sweng.ff.common.Team;
 
 public class TeamDAO extends BaseDAO {
 
-//	private final static String SELECT_BY_ID = "SELECT name, logo, " +
-//		"owner FROM teams WHERE id = ?";
-//	
-//	private final static String SELECT_BY_LEAGUE = "SELECT t.id, t.name, t.logo, t.owner " +
-//		"FROM teams t, league_team lt WHERE t.id = lt.team_id AND lt.league_id = ?";
-//
-//	private final static String SELECT_BY_OWNER = "SELECT t.id, t.name, t.logo, t.owner, " +
-//		"lt.league_id FROM teams t, league_team lt WHERE t.id = lt.team_id AND t.owner = ?";
-//
-//	private final static String STORE = "INSERT INTO teams (name, logo, owner) VALUES (" +
-//		"?, ?, ?)";
-//	
-//	private final static String UPDATE = "UPDATE teams SET name = ?, logo = ?, " +
-//		"owner = ? WHERE id = ?";
-//
-//	private final static String ADD_TEAM = "INSERT INTO league_team (league_id, team_id) " +
-//		"VALUES (?, ?)";
-
 	private final static String SELECT_BY_ID = "SELECT name, logo, " +
 		"owner_id, league_id, totalpoints, totalwins, totallosses FROM ff_teams WHERE id = ?";
 
@@ -51,11 +33,22 @@ public class TeamDAO extends BaseDAO {
 		"owner_id = ?, totalpoints = ?, totalwins = ?, totallosses = ? WHERE id = ?";
 
 	public List<Team> loadByLeague(League l) {
-		
-		List<Team> tl = new ArrayList<Team>();
-		
+
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
+		List<Team> teams = null;
+		try {
+			teams = this.loadByLeague(l, conn);
+		} finally {
+			close(conn);
+		}
+		return teams;
+		
+	}
+	
+	public List<Team> loadByLeague(League l, Connection conn) {
+		
+		List<Team> tl = new ArrayList<Team>();
 
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
@@ -75,12 +68,12 @@ public class TeamDAO extends BaseDAO {
 				t.setId(rs.getInt(1));
 				t.setName(rs.getString(2));
 				t.setLogo(rs.getString(3));
-				t.setOwner(mdao.loadByUserName(rs.getString(4)));
+				t.setOwner(mdao.loadByUserName(rs.getString(4), conn));
 				t.setPoints(rs.getInt(5));
 				t.setWins(rs.getInt(6));
 				t.setLosses(rs.getInt(7));
 				t.setLeagueId(l.getId());
-				t.setRosters(rdao.loadByTeam(t));
+				t.setRosters(rdao.loadByTeam(t, conn));
 				tl.add(t);
 				
 			}
@@ -90,7 +83,6 @@ public class TeamDAO extends BaseDAO {
 		} finally {
 			close(rs);
 			close(stmt1);
-			close(conn);
 		}
 		
 		return tl;
@@ -122,12 +114,12 @@ public class TeamDAO extends BaseDAO {
 				t.setId(rs.getInt(1));
 				t.setName(rs.getString(2));
 				t.setLogo(rs.getString(3));
-				t.setOwner(mdao.loadByUserName(rs.getString(4)));
+				t.setOwner(mdao.loadByUserName(rs.getString(4), conn));
 				t.setLeagueId(rs.getInt(5));
 				t.setPoints(rs.getInt(6));
 				t.setWins(rs.getInt(7));
 				t.setLosses(rs.getInt(8));
-				t.setRosters(rdao.loadByTeam(t));
+				t.setRosters(rdao.loadByTeam(t, conn));
 				tl.add(t);
 				
 			}
@@ -181,12 +173,12 @@ public class TeamDAO extends BaseDAO {
 				t.setId(id);
 				t.setName(rs.getString(1));
 				t.setLogo(rs.getString(2));
-				t.setOwner(mdao.loadByUserName(rs.getString(3)));
+				t.setOwner(mdao.loadByUserName(rs.getString(3), conn));
 				t.setLeagueId(rs.getInt(4));
 				t.setPoints(rs.getInt(5));
 				t.setWins(rs.getInt(6));
 				t.setLosses(rs.getInt(7));
-				t.setRosters(rdao.loadByTeam(t));
+				t.setRosters(rdao.loadByTeam(t, conn));
 				
 			}
 			

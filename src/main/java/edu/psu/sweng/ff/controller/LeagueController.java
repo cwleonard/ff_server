@@ -25,6 +25,7 @@ import javax.ws.rs.core.UriInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.Draft;
 import edu.psu.sweng.ff.common.DraftException;
 import edu.psu.sweng.ff.common.League;
@@ -65,7 +66,13 @@ public class LeagueController {
 			leagues = dao.loadAll();
 		} else {
 			MemberDAO mdao = new MemberDAO();
-			leagues = dao.loadByMember(mdao.loadByUserName(userName));
+			Member m = null;
+			try {
+				m = mdao.loadByUserName(userName);
+			} catch (DatabaseException e) {
+				throw new WebApplicationException(e);
+			}
+			leagues = dao.loadByMember(m);
 		}
 
 		Gson gson = new Gson();

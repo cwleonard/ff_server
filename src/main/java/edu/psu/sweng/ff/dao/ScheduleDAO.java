@@ -23,9 +23,21 @@ public class ScheduleDAO extends BaseDAO {
 	
 	public Schedule loadByLeague(League l) throws DatabaseException {
 
-		Schedule schedule = null;
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
 		Connection conn = dbcm.getConnection();
+		Schedule schedule = null;
+		try {
+			schedule = this.loadByLeague(l, conn);
+		} finally {
+			close(conn);
+		}
+		return schedule;
+		
+	}
+
+	public Schedule loadByLeague(League l, Connection conn) throws DatabaseException {
+
+		Schedule schedule = null;
 
 		PreparedStatement stmt1 = null;
 		ResultSet rs = null;
@@ -56,7 +68,6 @@ public class ScheduleDAO extends BaseDAO {
 		} finally {
 			close(rs);
 			close(stmt1);
-			close(conn);
 		}
 		
 		return schedule;

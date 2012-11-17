@@ -16,6 +16,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.Member;
 import edu.psu.sweng.ff.common.Player;
 
@@ -65,7 +66,12 @@ public class MemberDAOTest {
 		
 		assertTrue(dao.store(m));
 		
-		Member m2 = dao.loadByUserName(un);
+		Member m2 = null;
+		try {
+			m2 = dao.loadByUserName(un);
+		} catch (DatabaseException e) {
+			fail("database exception");
+		}
 		assertEquals(m.getEmail(), m2.getEmail());
 		assertEquals(m.getFirstName(), m2.getFirstName());
 		assertEquals(m.getAccessToken(), m2.getAccessToken());
@@ -100,7 +106,12 @@ public class MemberDAOTest {
 		m.setEmail(secondEmail);
 		assertTrue(dao.update(m));
 		
-		Member m2 = dao.loadByUserName(un);
+		Member m2 = null;
+		try {
+			m2 = dao.loadByUserName(un);
+		} catch (DatabaseException e) {
+			fail("database exception");
+		}
 		assertEquals(secondEmail, m2.getEmail());
 		
 		assertTrue(dao.remove(m));
