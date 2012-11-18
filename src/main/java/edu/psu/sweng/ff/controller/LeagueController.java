@@ -313,6 +313,7 @@ public class LeagueController {
 			
 			try {
 				draft.draftPlayer(player);
+				dao.store(l);
 			} catch (DraftException e) {
 				throw new WebApplicationException();
 			}

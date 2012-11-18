@@ -15,6 +15,8 @@ public class DraftDAO extends BaseDAO {
 	
 	private final static String CHECK = "SELECT league_id FROM ff_drafts WHERE league_id = ?";
 
+	private final static String CHECK2 = "SELECT DISTINCT league_id FROM ff_draft_order WHERE league_id = ?";
+
 	private final static String SELECT_BY_LEAGUE = "SELECT automatic, round, team_index, member_id "
 			+ "FROM ff_drafts WHERE league_id = ?";
 
@@ -106,7 +108,9 @@ public class DraftDAO extends BaseDAO {
 		PreparedStatement stmt1 = null;
 		PreparedStatement stmt2 = null;
 		PreparedStatement stmt3 = null;
+		PreparedStatement stmt4 = null;
 		ResultSet rs = null;
+		ResultSet rs2 = null;
 
 		try {
 			
@@ -115,6 +119,7 @@ public class DraftDAO extends BaseDAO {
 			rs = stmt1.executeQuery();
 
 			if (rs.next()) {
+
 				// already there. update.
 				stmt2 = conn.prepareStatement(UPDATE);
 				stmt2.setBoolean(1, d.isAutomatic());
@@ -128,6 +133,7 @@ public class DraftDAO extends BaseDAO {
 				}
 				stmt2.setInt(5, d.getLeagueId());
 				stmt2.executeUpdate();
+				
 			} else {
 				
 				// not there yet. insert.
@@ -144,7 +150,15 @@ public class DraftDAO extends BaseDAO {
 				}
 				stmt2.executeUpdate();
 				
-				// now store the team draft order
+			}
+
+			stmt4 = conn.prepareStatement(CHECK2);
+			stmt4.setInt(1, d.getLeagueId());
+			rs2 = stmt4.executeQuery();
+
+			// store draft order if not already stored (immutable once created)
+			if (!rs2.next()) {
+
 				if (d.getTeamOrder() != null) {
 					stmt3 = conn.prepareStatement(STORE_ORDER);
 					stmt3.setInt(1, d.getLeagueId());
@@ -155,7 +169,7 @@ public class DraftDAO extends BaseDAO {
 						stmt3.executeUpdate();
 					}
 				}
-				
+
 			}
 			
 		} catch (Exception e) {
@@ -163,9 +177,11 @@ public class DraftDAO extends BaseDAO {
 			return false;
 		} finally {
 			close(rs);
+			close(rs2);
 			close(stmt1);
 			close(stmt2);
 			close(stmt3);
+			close(stmt4);
 			close(conn);
 		}
 		
