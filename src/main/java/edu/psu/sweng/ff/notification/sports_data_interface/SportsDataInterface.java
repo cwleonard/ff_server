@@ -32,7 +32,7 @@ public class SportsDataInterface {
 	// Constants
 	//private static final String API_KEY = "bzxrzyhacyfnvhbvevfps9zw"; //Our API Key
 	private static final String API_KEY = "ecemnfwb82cgmkqz5fc8nhgw"; //Demo API Key
-	private static final int API_QUERY_DELAY = 1250; //Delay between API queries, in milliseconds
+	private static final int API_QUERY_DELAY = 1500; //Delay between API queries, in milliseconds
 	
 	private static String  currentTeamId = "";
 	private static Document currentTeamDocument;
@@ -275,12 +275,18 @@ public class SportsDataInterface {
 					   game.setHomeId(getNodeAttr("home", node));
 					   game.setAwayId(getNodeAttr("away", node));
 					   //Load Game Statistics
-					   Document statisticsXml = getXmlDocument("http://api.sportsdatallc.org/nfl-t1/2012/REG/1/DAL/NYG/statistics.xml?api_key=" + API_KEY, tmpDir, "statistics_" + week + "_" + game.getAwayId() + "_" + game.getHomeId() + ".xml");
-					   NodeList teamNodes = statisticsXml.getChildNodes();
+					   Document statisticsXml = getXmlDocument("http://api.sportsdatallc.org/nfl-t1/2012/REG/1/" + game.getAwayId() + "/" + game.getHomeId() + "/statistics.xml?api_key=" + API_KEY, tmpDir, "statistics_" + week + "_" + game.getAwayId() + "_" + game.getHomeId() + ".xml");
+					   NodeList teamNodes = statisticsXml.getElementsByTagName("team");
+					   //Set Home Team Name
+					   game.setHomeName(getTeamName(teamNodes, game.getHomeId()));
+					   //Set Away Team Name
+					   game.setAwayName(getTeamName(teamNodes, game.getAwayId()));
 					   //Calculate Home Team Defense Points
 					   game.setHomeDefensePoints(getDefensePoints(teamNodes, game.getHomeId(), game.getAwayId()));
 					   //Calculate Away Team Defense Points
-					   game.setHomeDefensePoints(getDefensePoints(teamNodes, game.getAwayId(), game.getHomeId()));
+					   game.setAwayDefensePoints(getDefensePoints(teamNodes, game.getAwayId(), game.getHomeId()));
+					   //Set player points
+					   game.setPlayerPoints(getPlayerPoints(statisticsXml));
 					   games.add(game);
 				   }
 			   }
@@ -290,6 +296,83 @@ public class SportsDataInterface {
     	}
     	
     	return games.toArray(new Game[games.size()]);
+	}
+
+	private static PlayerPoints[] getPlayerPoints(Document statisticsXml) {
+		ArrayList<PlayerPoints> players = new ArrayList<PlayerPoints>();
+		
+		//7.1.1 System shall award each offensive position (quarterback, running back, wide receiver, and tight end) six points for rushing, receiving, and throwing touchdown.
+		players = addPlayerPoints(players, statisticsXml, "rushing", "td", 6, 1);
+		players = addPlayerPoints(players, statisticsXml, "receiving", "td", 6, 1);
+		players = addPlayerPoints(players, statisticsXml, "passing", "td", 6, 1);
+		//7.1.2 System shall award quarterback one point for each 25 yards of passing.
+		players = addPlayerPoints(players, statisticsXml, "passing", "yds", 1, 25);
+		//7.1.3 System shall award each offensive position (quarterback, running back, wide receiver, and tight end) one point for each 15 yards of rushing.
+		players = addPlayerPoints(players, statisticsXml, "rushing", "yds", 1, 15);
+		//7.1.4 System shall subtract two points from quarterback for each interception.
+		players = addPlayerPoints(players, statisticsXml, "passing", "int", -2, 1);
+		//7.1.5 System shall subtract two points from player for each fumble.
+		players = addPlayerPoints(players, statisticsXml, "fumbles", "fum", -2, 1);
+		//7.1.6 System shall award kicker one point for PAT kick.
+		players = addPlayerPoints(players, statisticsXml, "K", "extra_point", "made", 1, 1);
+		//7.1.7 System shall award kicker three points for field goal.
+		players = addPlayerPoints(players, statisticsXml, "field_goal", "made", 3, 1);
+		
+		return players.toArray(new PlayerPoints[players.size()]);
+	}
+
+	private static ArrayList<PlayerPoints> addPlayerPoints(ArrayList<PlayerPoints> players, Document xml,
+			String position, String tagName, String attribute, int multiplier, int divisor) {
+
+		NodeList nodes = xml.getElementsByTagName(tagName);
+		for (int n = 0; n < nodes.getLength(); n++) {
+		   Node node = nodes.item(n);
+		   if (node.getNodeType() == Node.ELEMENT_NODE) {
+			   NodeList playerNodes = ((Element)node).getElementsByTagName("player");
+			   for (int p = 0; p < playerNodes.getLength(); p++) {
+				   Node playerNode = playerNodes.item(p);
+				   if (node.getNodeType() == Node.ELEMENT_NODE) {
+						   if (position.equals("") || position.equals(getNodeAttr(position, playerNode))) {
+							   String id = getNodeAttr("id", playerNode); 
+							   int points = Integer.parseInt(getNodeAttr(attribute, playerNode)) * multiplier / divisor;
+							   boolean found = false;
+							   for (PlayerPoints player : players) {
+								   if (player.getPlayerId().equals(id)) {
+									   player.setPoints(player.getPoints() + points);
+									   found = true;
+								   }
+							   }
+							   if(!found) {
+								   players.add(new PlayerPoints(id, points));
+							   }
+						   }
+				   }
+			   }
+		   }
+		}
+		
+		return players;
+	}
+
+	private static ArrayList<PlayerPoints> addPlayerPoints(ArrayList<PlayerPoints> players, Document xml,
+			String tagName, String attribute, int multiplier, int divisor) {
+		return addPlayerPoints(players, xml, "", tagName, attribute, multiplier, divisor);
+	}
+
+	private static String getTeamName(NodeList teamNodes, String teamId) {
+		String teamName = "";
+		
+		for (int i = 0; i < teamNodes.getLength(); i++) {
+			   Node node = teamNodes.item(i);
+			   if (node.getNodeType() == Node.ELEMENT_NODE) {
+				   String id = getNodeAttr("id", node); 
+				   if (id.contentEquals(teamId)) {
+					   teamName = getNodeAttr("name", node);
+				   }
+			   }
+		}
+		
+		return teamName;
 	}
 	
 	private static BigDecimal getDefensePoints(NodeList teamNodes, String teamId, String opponentId) {
@@ -305,32 +388,32 @@ public class SportsDataInterface {
 					   int fumble_recoveries = Integer.parseInt(getNodeAttr("fum_rec", defense));
 					   int interceptions = Integer.parseInt(getNodeAttr("int", defense));
 					   int safeties = Integer.parseInt(getNodeAttr("sfty", defense));
-					   points.add(new BigDecimal((fumble_recoveries + interceptions + safeties) * 2));
+					   points = points.add(new BigDecimal((fumble_recoveries + interceptions + safeties) * 2));
 					   //SRS 7.1.9: System shall award team defense one point for sack.
-					   points.add(new BigDecimal(getNodeAttr("sack", defense)));
+					   points = points.add(new BigDecimal(getNodeAttr("sack", defense)));
 					   //SRS 7.1.10: System shall award team defense six points for defensive touchdown or kick return touchdown.
 					   Node touchdowns = ((Element)node).getElementsByTagName("touchdowns").item(0);
 					   int fumble_touchdowns = Integer.parseInt(getNodeAttr("fum_ret", touchdowns));
 					   int interception_touchdowns = Integer.parseInt(getNodeAttr("int", touchdowns));
 					   int kick_return_touchdowns = Integer.parseInt(getNodeAttr("kick_ret", touchdowns));
-					   points.add(new BigDecimal((fumble_touchdowns + interception_touchdowns + kick_return_touchdowns) * 6));
+					   points = points.add(new BigDecimal((fumble_touchdowns + interception_touchdowns + kick_return_touchdowns) * 6));
 				   } else if (id.contentEquals(opponentId)) {
 					   //SRS 7.1.11: System shall award points for opposition scoring.
 					   int opponentScore = Integer.parseInt(getNodeAttr("points", node));
 					   //SRS 7.1.11.1: System shall award team defense 10 points for zero points allowed.
-					   if (opponentScore == 0) points.add(new BigDecimal(10));
+					   if (opponentScore == 0) points = points.add(new BigDecimal(10));
 					   //SRS 7.1.11.2: System shall award team defense seven points for one to six points allowed.
-					   else if (opponentScore <= 6) points.add(new BigDecimal(7));
+					   else if (opponentScore <= 6) points = points.add(new BigDecimal(7));
 					   //SRS 7.1.11.3: System shall award team defense four points for seven to 13 points allowed.
-					   else if (opponentScore <= 13) points.add(new BigDecimal(4));
+					   else if (opponentScore <= 13) points = points.add(new BigDecimal(4));
 					   //SRS 7.1.11.4: System shall award team defense one point for 14 to 20 points allowed.
-					   else if (opponentScore <= 20) points.add(new BigDecimal(1));
+					   else if (opponentScore <= 20) points = points.add(new BigDecimal(1));
 					   //SRS 7.1.11.5: System shall award team defense zero points for 21 to 27 points allowed.
-					   else if (opponentScore <= 27) points.add(new BigDecimal(0));
+					   else if (opponentScore <= 27) points = points.add(new BigDecimal(0));
 					   //SRS 7.1.11.6: System shall subtract one point from team defense for 28 to 34 points allowed.
-					   else if (opponentScore <= 34) points.subtract(new BigDecimal(1));
+					   else if (opponentScore <= 34) points = points.subtract(new BigDecimal(1));
 					   //SRS 7.1.11.7: System shall subtract four points from team defense for 35 or more points allowed.
-					   else points.subtract(new BigDecimal(4));
+					   else points = points.subtract(new BigDecimal(4));
 				   }
 			   }
 		}

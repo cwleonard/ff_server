@@ -9,7 +9,7 @@ public class Game {
 	private String awayId = "";
 	private String awayName = "";
 	private BigDecimal awayDefensePoints = new BigDecimal("0");
-	private Player[] players;
+	private PlayerPoints[] playerPoints;
 	
 	public void setHomeId(String homeTeamId) {
 		homeId = homeTeamId;
@@ -59,11 +59,11 @@ public class Game {
 		this.awayDefensePoints = awayDefensePoints;
 	}
 
-	public Player[] getPlayers() {
-		return players;
+	public PlayerPoints[] getPlayerPoints() {
+		return playerPoints;
 	}
 
-	public void setPlayers(Player[] players) {
-		this.players = players;
+	public void setPlayerPoints(PlayerPoints[] playerPoints) {
+		this.playerPoints = playerPoints;
 	}
 }
