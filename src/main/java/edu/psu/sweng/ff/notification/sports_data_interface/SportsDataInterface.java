@@ -37,7 +37,7 @@ public class SportsDataInterface {
 	private static String  currentTeamId = "";
 	private static Document currentTeamDocument;
 	private static long nextApiQuery = new Date().getTime();
-	private static String tmpDir = System.getProperty("java.io.tmpdir") + "/ff_server";
+	private static String tmpDir = System.getProperty("java.io.tmpdir") + File.separator + "ff_server";
 
     // Suppress default constructor
     private SportsDataInterface() {
