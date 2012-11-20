@@ -53,6 +53,7 @@ public class DatabaseUpdate {
 		}
     }
 
+    //Update points awarded by game performance
     public static void updatePoints(int week) {
     	Game[] games = SportsDataInterface.getGames(week);
     	
@@ -60,8 +61,6 @@ public class DatabaseUpdate {
 		Connection conn = dbcm.getConnection();
 		
 		PreparedStatement stmt = null;
-    	
-		//Update points awarded by game performance
 		
 		//Clear Team Defense Points
 		try {
