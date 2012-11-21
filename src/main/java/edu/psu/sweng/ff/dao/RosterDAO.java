@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.psu.sweng.ff.common.DatabaseException;
+import edu.psu.sweng.ff.common.Matchup;
 import edu.psu.sweng.ff.common.Player;
 import edu.psu.sweng.ff.common.Roster;
 import edu.psu.sweng.ff.common.RosterStore;
@@ -19,7 +20,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		"starter, player_id FROM ff_roster_player WHERE team_id = ? and week = ?";
 	
 	private final static String STORE = "INSERT INTO ff_rosters (team_id, " +
-		"week) VALUES (?, ?)";
+		"week, defense_team) VALUES (?, ?, ?)";
 	
 	private final static String STORE_PLAYER = "INSERT INTO ff_roster_player (team_id, " +
 			"week, starter, player_id) VALUES (?, ?, ?, ?)";
@@ -30,7 +31,10 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 	private final static String CLEAR_PLAYERS = "DELETE FROM ff_roster_player WHERE " +
 	"team_id = ? AND week = ?";
 
-	private final static String REMOVE = "DELETE FROM ff_roster WHERE team_id = ?";
+	private final static String REMOVE = "DELETE FROM ff_rosters WHERE team_id = ?";
+	
+	private final static String SET_MATCHUP = "UPDATE ff_rosters SET points = 0, won = 0, tied = 0, " +
+			"opponent_id = ? WHERE team_id = ?";
 	
 	public Roster loadByTeamAndWeek(Team t, int week) throws DatabaseException {
 
@@ -151,6 +155,35 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		return rosters;
 		
 	}
+	
+	public void setMatchup(Matchup matchup) throws DatabaseException {
+		
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		
+		try {
+			
+			stmt1 = conn.prepareStatement(SET_MATCHUP);
+			stmt1.setInt(1, matchup.getTeamA());
+			stmt1.setInt(2, matchup.getTeamB());
+			stmt1.executeUpdate();
+			
+			stmt1.clearParameters();
+			stmt1.setInt(1, matchup.getTeamB());
+			stmt1.setInt(2, matchup.getTeamA());
+			stmt1.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new DatabaseException();
+		} finally {
+			close(stmt1);
+			close(conn);
+		}
+		
+	}
 
 	public void store(Roster r) throws DatabaseException {
 
@@ -162,6 +195,10 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 		int teamId = r.getTeamId();
 		int week = r.getWeek();
+		String def = r.getDefenseTeam();
+		if (def == null || def.length() == 0) {
+			def = "Lions";
+		}
 
 		List<Player> starters = r.getStartingPlayers();
 		List<Player> bench = r.getBenchPlayers();
@@ -199,6 +236,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 			stmt0 = conn.prepareStatement(STORE);
 			stmt0.setInt(1, teamId);
 			stmt0.setInt(2, week);
+			stmt0.setString(3, def);
 			stmt0.executeUpdate();
 			
 		} catch (Exception e) {

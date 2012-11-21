@@ -10,12 +10,16 @@ import org.quartz.JobExecutionException;
 
 import edu.psu.sweng.ff.common.DatabaseException;
 import edu.psu.sweng.ff.common.League;
+import edu.psu.sweng.ff.common.Matchup;
 import edu.psu.sweng.ff.common.Roster;
+import edu.psu.sweng.ff.common.Schedule;
 import edu.psu.sweng.ff.common.Team;
 import edu.psu.sweng.ff.dao.LeagueDAO;
 import edu.psu.sweng.ff.dao.RosterDAO;
+import edu.psu.sweng.ff.dao.ScheduleDAO;
 import edu.psu.sweng.ff.dao.SeasonDAO;
 import edu.psu.sweng.ff.dao.TeamDAO;
+import edu.psu.sweng.ff.notification.DatabaseUpdate;
 
 public class WeeklyMaintenanceJob implements Job {
 
@@ -59,11 +63,17 @@ public class WeeklyMaintenanceJob implements Job {
 				newWeek = sdao.getCurrentWeek();
 			}
 			
+			if (newWeek > 1) {
+				System.out.println("...finishing up points for week " + (newWeek - 1));
+				DatabaseUpdate.updatePoints(newWeek - 1);
+			}
+			
 			System.out.println("......setting up for week " + newWeek);
 			
 			LeagueDAO ldao = new LeagueDAO();
 			TeamDAO tdao = new TeamDAO();
 			RosterDAO rdao = new RosterDAO();
+			ScheduleDAO schdao = new ScheduleDAO();
 			
 			List<League> leagues = null;
 			if (specificLeague >= 0) {
@@ -81,6 +91,8 @@ public class WeeklyMaintenanceJob implements Job {
 				System.out.println("......working on league " + l.getId()
 						+ " (\"" + l.getName() + "\")");
 
+				Schedule schedule = schdao.loadByLeague(l);
+				
 				List<Team> teams = tdao.loadByLeague(l);
 				Iterator<Team> ti = teams.iterator();
 				while (ti.hasNext()) {
@@ -100,6 +112,17 @@ public class WeeklyMaintenanceJob implements Job {
 						rdao.store(r);
 					}
 
+				}
+				
+				System.out.println(".........setting opponents");
+				
+				List<Matchup> matchups = schedule.getMatchups(newWeek);
+				Iterator<Matchup> mit = matchups.iterator();
+				while (mit.hasNext()) {
+					
+					Matchup matchup = mit.next();
+					rdao.setMatchup(matchup);
+					
 				}
 				
 			}

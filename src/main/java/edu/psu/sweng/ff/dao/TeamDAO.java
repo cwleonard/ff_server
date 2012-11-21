@@ -3,6 +3,7 @@ package edu.psu.sweng.ff.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -31,6 +32,9 @@ public class TeamDAO extends BaseDAO {
 	
 	private final static String UPDATE = "UPDATE ff_teams SET name = ?, logo = ?, " +
 		"owner_id = ?, totalpoints = ?, totalwins = ?, totallosses = ? WHERE id = ?";
+	
+	private final static String GET_POINTS = "SELECT points FROM ff_rosters WHERE " +
+			"team_id = ? AND week = (SELECT week FROM ff_season WHERE current = 1)";
 
 	public List<Team> loadByLeague(League l) {
 
@@ -74,6 +78,7 @@ public class TeamDAO extends BaseDAO {
 				t.setLosses(rs.getInt(7));
 				t.setLeagueId(l.getId());
 				t.setRosters(rdao.loadByTeam(t, conn));
+				t.setPointsThisWeek(this.pointsThisWeek(t.getId(), conn));
 				tl.add(t);
 				
 			}
@@ -120,6 +125,7 @@ public class TeamDAO extends BaseDAO {
 				t.setWins(rs.getInt(7));
 				t.setLosses(rs.getInt(8));
 				t.setRosters(rdao.loadByTeam(t, conn));
+				t.setPointsThisWeek(this.pointsThisWeek(t.getId(), conn));
 				tl.add(t);
 				
 			}
@@ -136,6 +142,28 @@ public class TeamDAO extends BaseDAO {
 		
 	}
 
+	private int pointsThisWeek(int id, Connection conn) throws SQLException {
+		
+		int p = 0;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try {
+			
+			stmt = conn.prepareStatement(GET_POINTS);
+			stmt.setInt(1, id);
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				p = rs.getInt(1);
+			}
+			
+		} finally {
+			close(rs);
+			close(stmt);
+		}
+		return p;
+		
+	}
+	
 	public Team loadById(int id) {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
@@ -179,6 +207,7 @@ public class TeamDAO extends BaseDAO {
 				t.setWins(rs.getInt(6));
 				t.setLosses(rs.getInt(7));
 				t.setRosters(rdao.loadByTeam(t, conn));
+				t.setPointsThisWeek(this.pointsThisWeek(t.getId(), conn));
 				
 			}
 			

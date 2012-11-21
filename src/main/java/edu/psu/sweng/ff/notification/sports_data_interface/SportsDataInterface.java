@@ -275,7 +275,7 @@ public class SportsDataInterface {
 					   game.setHomeId(getNodeAttr("home", node));
 					   game.setAwayId(getNodeAttr("away", node));
 					   //Load Game Statistics
-					   Document statisticsXml = getXmlDocument("http://api.sportsdatallc.org/nfl-t1/2012/REG/1/" + game.getAwayId() + "/" + game.getHomeId() + "/statistics.xml?api_key=" + API_KEY, tmpDir, "statistics_" + week + "_" + game.getAwayId() + "_" + game.getHomeId() + ".xml");
+					   Document statisticsXml = getXmlDocument("http://api.sportsdatallc.org/nfl-t1/2012/REG/" + week + "/" + game.getAwayId() + "/" + game.getHomeId() + "/statistics.xml?api_key=" + API_KEY, tmpDir, "statistics_" + week + "_" + game.getAwayId() + "_" + game.getHomeId() + ".xml");
 					   NodeList teamNodes = statisticsXml.getElementsByTagName("team");
 					   //Set Home Team Name
 					   game.setHomeName(getTeamName(teamNodes, game.getHomeId()));
