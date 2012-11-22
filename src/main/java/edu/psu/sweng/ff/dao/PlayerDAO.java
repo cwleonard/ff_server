@@ -12,30 +12,6 @@ import edu.psu.sweng.ff.common.PlayerSource;
 
 public class PlayerDAO extends BaseDAO implements PlayerSource {
 
-//	private final static String STORE = "INSERT INTO players (guid, firstname, " +
-//		"lastname, birthdate, height, weight, college, nfl_team, " +
-//		"position) VALUES (?,?,?,?,?,?,?,?,?)";
-//
-//	private final static String UPDATE = "INSERT INTO players (guid, firstname, " +
-//		"lastname, birthdate, height, weight, college, nfl_team, " +
-//		"position) VALUES (?,?,?,?,?,?,?,?,?)";
-//
-//	private final static String LOAD_BY_ID = "SELECT firstname, lastname, " +
-//		"birthdate, height, weight, college, nfl_team, position " +
-//		"FROM players WHERE guid = ?";
-//	
-//	private final static String LOAD_BY_TYPE = "SELECT guid, firstname, lastname, " +
-//		"birthdate, height, weight, college, nfl_team, position " +
-//		"FROM players WHERE position = ?";
-//
-//	private final static String LOAD_BY_TYPES = "SELECT guid, firstname, lastname, " +
-//		"birthdate, height, weight, college, nfl_team, position " +
-//		"FROM players WHERE position IN ";
-//	
-//	private final static String RESTRICT = " AND guid NOT IN (SELECT player_id " +
-//			"FROM rosters, league_team WHERE league_id = ? AND " +
-//			"rosters.team_id = league_team.team_id)";
-
 	private final static String CHECK = "SELECT playerid FROM ff_players WHERE playerid = ?";
 	
 	private final static String STORE = "INSERT INTO ff_players (playerid, firstname, " +
@@ -51,6 +27,11 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 	private final static String LOAD_BY_ID = "SELECT firstname, lastname, " +
 		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
 		"FROM ff_players WHERE playerid = ?";
+
+	private final static String LOAD_BY_ID_WITH_POINTS = "SELECT firstname, lastname, " +
+		"birthdate, height, weight, college, nflteam, position, jerseynumber, points " +
+		"FROM ff_players, ff_playerpoints WHERE ff_players.playerid = ff_playerpoints.player_id " +
+		"AND ff_players.playerid = ? AND ff_playerpoints.week = ?";
 
 	private final static String LOAD_BY_TYPE = "SELECT playerid, firstname, lastname, " +
 		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
@@ -195,7 +176,7 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		Connection conn = dbcm.getConnection();
 		Player player = null;
 		try {
-			player = this.getById(id, conn);
+			player = this.getById(id, -1, conn);
 		} finally {
 			close(conn);
 		}
@@ -203,7 +184,7 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		
 	}
 	
-	public Player getById(String id, Connection conn) {
+	public Player getById(String id, int week, Connection conn) {
 		
 		Player p = null;
 		
@@ -212,8 +193,14 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		
 		try {
 
-			stmt1 = conn.prepareStatement(LOAD_BY_ID);
-			stmt1.setString(1, id);
+			if (week < 1) {
+				stmt1 = conn.prepareStatement(LOAD_BY_ID);
+				stmt1.setString(1, id);
+			} else {
+				stmt1 = conn.prepareStatement(LOAD_BY_ID_WITH_POINTS);
+				stmt1.setString(1, id);
+				stmt1.setInt(2, week);
+			}
 			
 			rs = stmt1.executeQuery();
 			
@@ -230,6 +217,10 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 				p.setNflTeam(rs.getString(7));
 				p.setPosition(rs.getString(8));
 				p.setJerseyNumber(rs.getInt(9));
+				if (week > 0) {
+					p.setPoints(rs.getInt(10));
+					p.setWeek(week);
+				}
 				
 			}
 			

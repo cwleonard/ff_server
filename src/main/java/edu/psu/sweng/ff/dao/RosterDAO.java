@@ -3,6 +3,7 @@ package edu.psu.sweng.ff.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,8 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 
 	private final static String SELECT_BY_TEAM = "SELECT " +
 		"starter, player_id FROM ff_roster_player WHERE team_id = ? and week = ?";
+	
+	private final static String SELECT2 = "SELECT points FROM ff_rosters WHERE team_id = ? AND week = ?";
 	
 	private final static String STORE = "INSERT INTO ff_rosters (team_id, " +
 		"week, defense_team) VALUES (?, ?, ?)";
@@ -62,7 +65,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 				String pid = rs.getString(2);
 
 				PlayerDAO pDao = new PlayerDAO();
-				Player p = pDao.getById(pid);
+				Player p = pDao.getById(pid, week, conn);
 
 				if (starter) {
 					r.addStartingPlayer(p);
@@ -71,6 +74,8 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 				}
 
 			}
+			
+			this.setPoints(r, conn);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -85,6 +90,27 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		
 	}
 
+	private void setPoints(Roster r, Connection conn) throws SQLException {
+		
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		
+		try {
+			
+			stmt = conn.prepareStatement(SELECT2);
+			stmt.setInt(1, r.getTeamId());
+			stmt.setInt(2, r.getWeek());
+			rs = stmt.executeQuery();
+			if (rs.next()) {
+				r.setPoints(rs.getInt(1));
+			}
+			
+		} finally {
+			close(stmt);
+		}
+		
+	}
+	
 	public List<Roster> loadByTeam(Team t) throws DatabaseException {
 
 		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
@@ -127,7 +153,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 					boolean starter = rs.getBoolean(1);
 					String pid = rs.getString(2);
 
-					Player p = pDao.getById(pid, conn);
+					Player p = pDao.getById(pid, w, conn);
 					
 					if (starter) {
 						r.addStartingPlayer(p);
@@ -136,6 +162,8 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 					}
 
 				}
+				
+				this.setPoints(r, conn);
 
 			} catch (Exception e) {
 				e.printStackTrace();

@@ -61,9 +61,6 @@ public class TeamDAOTest {
 		t.setLeagueId(1);
 		t.setLogo("logo");
 		t.setOwner(owner);
-		t.setPoints(100);
-		t.setWins(2);
-		t.setLosses(2);
 		
 		dao.store(t);
 		
@@ -72,9 +69,6 @@ public class TeamDAOTest {
 		assertEquals(t.getName(), t2.getName());
 		assertEquals(t.getLeagueId(), t2.getLeagueId());
 		assertEquals(t.getLogo(), t2.getLogo());
-		assertEquals(t.getPoints(), t2.getPoints());
-		assertEquals(t.getWins(), t2.getWins());
-		assertEquals(t.getLosses(), t2.getLosses());
 		
 		assertTrue(dao.remove(t2));
 		
@@ -95,18 +89,12 @@ public class TeamDAOTest {
 		t.setLeagueId(1);
 		t.setLogo("logo");
 		t.setOwner(owner);
-		t.setPoints(100);
-		t.setWins(2);
-		t.setLosses(2);
 
 		Team t2 = new Team();
 		t2.setName(tn2);
 		t2.setLeagueId(2);
 		t2.setLogo("logo");
 		t2.setOwner(owner);
-		t2.setPoints(200);
-		t2.setWins(4);
-		t2.setLosses(4);
 
 		dao.store(t);
 		dao.store(t2);
@@ -125,18 +113,12 @@ public class TeamDAOTest {
 				assertEquals(t.getName(), tt.getName());
 				assertEquals(t.getLeagueId(), tt.getLeagueId());
 				assertEquals(t.getLogo(), tt.getLogo());
-				assertEquals(t.getPoints(), tt.getPoints());
-				assertEquals(t.getWins(), tt.getWins());
-				assertEquals(t.getLosses(), tt.getLosses());
 
 			} else if (tt.getId() == t2.getId()) {
 				
 				assertEquals(t2.getName(), tt.getName());
 				assertEquals(t2.getLeagueId(), tt.getLeagueId());
 				assertEquals(t2.getLogo(), tt.getLogo());
-				assertEquals(t2.getPoints(), tt.getPoints());
-				assertEquals(t2.getWins(), tt.getWins());
-				assertEquals(t2.getLosses(), tt.getLosses());
 				
 			} else {
 				
@@ -169,18 +151,12 @@ public class TeamDAOTest {
 		t.setLeagueId(9999);
 		t.setLogo("logo");
 		t.setOwner(owner);
-		t.setPoints(100);
-		t.setWins(2);
-		t.setLosses(2);
 
 		Team t2 = new Team();
 		t2.setName(tn2);
 		t2.setLeagueId(9998);
 		t2.setLogo("logo");
 		t2.setOwner(owner);
-		t2.setPoints(200);
-		t2.setWins(4);
-		t2.setLosses(4);
 
 		dao.store(t);
 		dao.store(t2);
@@ -193,9 +169,6 @@ public class TeamDAOTest {
 		assertEquals(t.getName(), tt.getName());
 		assertEquals(t.getLeagueId(), tt.getLeagueId());
 		assertEquals(t.getLogo(), tt.getLogo());
-		assertEquals(t.getPoints(), tt.getPoints());
-		assertEquals(t.getWins(), tt.getWins());
-		assertEquals(t.getLosses(), tt.getLosses());
 
 		assertTrue(dao.remove(t));
 		assertTrue(dao.remove(t2));
@@ -221,16 +194,10 @@ public class TeamDAOTest {
 		dao.store(t);
 
 		t.setName(tn2);
-		t.setPoints(123);
-		t.setWins(3);
-		t.setLosses(1);
 		assertTrue(dao.update(t));
 		
 		Team t2 = dao.loadById(t.getId());
 		assertEquals(tn2, t2.getName());
-		assertEquals(123, t2.getPoints());
-		assertEquals(3, t2.getWins());
-		assertEquals(1, t2.getLosses());
 		
 		assertTrue(dao.remove(t));
 		
