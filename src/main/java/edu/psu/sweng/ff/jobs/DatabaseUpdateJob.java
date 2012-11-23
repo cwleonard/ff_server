@@ -10,15 +10,36 @@ import edu.psu.sweng.ff.notification.DatabaseUpdate;
 
 public class DatabaseUpdateJob implements Job {
 
+	private int specificWeek = -1;
+	
+	public static void main(String[] args) {
+		DatabaseUpdateJob job = new DatabaseUpdateJob();
+		if (args.length > 0) {
+			job.specificWeek = Integer.parseInt(args[0]);
+		}
+		try {
+			job.execute(null);
+		} catch (JobExecutionException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
 
-		System.out.println("...Running points update job.");
-
-		SeasonDAO sdao = new SeasonDAO();
-		int week;
 		try {
-			week = sdao.getCurrentWeek();
+
+			int week;
+			if (specificWeek > 0) {
+				week = specificWeek;
+			} else {
+				SeasonDAO sdao = new SeasonDAO();
+				week = sdao.getCurrentWeek();
+			}
+
+			System.out.println("...Running points update job (week " + week + ")");
+
 			DatabaseUpdate.updatePoints(week);
+			
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
