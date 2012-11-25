@@ -29,9 +29,10 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 		"FROM ff_players WHERE playerid = ?";
 
 	private final static String LOAD_BY_ID_WITH_POINTS = "SELECT firstname, lastname, " +
-		"birthdate, height, weight, college, nflteam, position, jerseynumber, points " +
-		"FROM ff_players, ff_playerpoints WHERE ff_players.playerid = ff_playerpoints.player_id " +
-		"AND ff_players.playerid = ? AND ff_playerpoints.week = ?";
+			"birthdate, height, weight, college, nflteam, position, jerseynumber, points " +
+			"FROM ff_players LEFT JOIN ff_playerpoints ON " +
+			"ff_players.playerid = ff_playerpoints.player_id " +
+			"AND ff_playerpoints.week = ? WHERE ff_players.playerid = ?";
 
 	private final static String LOAD_BY_TYPE = "SELECT playerid, firstname, lastname, " +
 		"birthdate, height, weight, college, nflteam, position, jerseynumber " +
@@ -198,8 +199,8 @@ public class PlayerDAO extends BaseDAO implements PlayerSource {
 				stmt1.setString(1, id);
 			} else {
 				stmt1 = conn.prepareStatement(LOAD_BY_ID_WITH_POINTS);
-				stmt1.setString(1, id);
-				stmt1.setInt(2, week);
+				stmt1.setInt(1, week);
+				stmt1.setString(2, id);
 			}
 			
 			rs = stmt1.executeQuery();
