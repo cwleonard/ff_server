@@ -393,9 +393,14 @@ public class SportsDataInterface {
 					   points = points.add(new BigDecimal(getNodeAttr("sack", defense)));
 					   //SRS 7.1.10: System shall award team defense six points for defensive touchdown or kick return touchdown.
 					   Node touchdowns = ((Element)node).getElementsByTagName("touchdowns").item(0);
-					   int fumble_touchdowns = Integer.parseInt(getNodeAttr("fum_ret", touchdowns));
-					   int interception_touchdowns = Integer.parseInt(getNodeAttr("int", touchdowns));
-					   int kick_return_touchdowns = Integer.parseInt(getNodeAttr("kick_ret", touchdowns));
+					   int fumble_touchdowns = 0;
+					   int interception_touchdowns = 0;
+					   int kick_return_touchdowns = 0;
+					   if (touchdowns != null) {
+						   fumble_touchdowns = Integer.parseInt(getNodeAttr("fum_ret", touchdowns));
+						   interception_touchdowns = Integer.parseInt(getNodeAttr("int", touchdowns));
+						   kick_return_touchdowns = Integer.parseInt(getNodeAttr("kick_ret", touchdowns));
+					   }
 					   points = points.add(new BigDecimal((fumble_touchdowns + interception_touchdowns + kick_return_touchdowns) * 6));
 				   } else if (id.contentEquals(opponentId)) {
 					   //SRS 7.1.11: System shall award points for opposition scoring.

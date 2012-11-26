@@ -102,6 +102,9 @@ public class WeeklyMaintenanceJob implements Job {
 					System.out.println(".........working on team " + t.getId()
 							+ "(\"" + t.getName() + "\")");
 
+					// store updated points
+					tdao.updatePoints(t);
+
 					Roster r = t.getRoster(newWeek);
 					if (r.getStartingPlayers().size() == 0) {
 						// roster for this week has not been created yet

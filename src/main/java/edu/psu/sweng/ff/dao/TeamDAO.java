@@ -327,6 +327,45 @@ public class TeamDAO extends BaseDAO {
 		
 	}
 
+	/**
+	 * Just updates the team name and points and stuff - no roster updates.
+	 * This is used by the weekly maintenance job to keep the points in the
+	 * database table up to date.
+	 * 
+	 * @param t
+	 * @return
+	 */
+	public boolean updatePoints(Team t) {
+
+		DatabaseConnectionManager dbcm = new DatabaseConnectionManager();
+		Connection conn = dbcm.getConnection();
+
+		PreparedStatement stmt1 = null;
+		
+		try {
+
+			stmt1 = conn.prepareStatement(UPDATE);
+			stmt1.setString(1, t.getName());
+			stmt1.setString(2, t.getLogo());
+			stmt1.setString(3, t.getOwner().getUserName());
+			stmt1.setInt(4, t.getPoints());
+			stmt1.setInt(5, t.getWins());
+			stmt1.setInt(6, t.getLosses());
+			stmt1.setInt(7, t.getId());
+			
+			stmt1.executeUpdate();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		} finally {
+			close(stmt1);
+			close(conn);
+		}
+		
+		return true;
+		
+	}
 	
 	public boolean update(Team t) {
 

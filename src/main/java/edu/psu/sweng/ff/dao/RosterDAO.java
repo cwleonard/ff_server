@@ -37,7 +37,7 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 	private final static String REMOVE = "DELETE FROM ff_rosters WHERE team_id = ?";
 	
 	private final static String SET_MATCHUP = "UPDATE ff_rosters SET points = 0, won = 0, tied = 0, " +
-			"opponent_id = ? WHERE team_id = ?";
+			"opponent_id = ? WHERE team_id = ? AND week = ?";
 	
 	public Roster loadByTeamAndWeek(Team t, int week) throws DatabaseException {
 
@@ -190,17 +190,19 @@ public class RosterDAO extends BaseDAO implements RosterStore {
 		Connection conn = dbcm.getConnection();
 
 		PreparedStatement stmt1 = null;
-		
+				
 		try {
 			
 			stmt1 = conn.prepareStatement(SET_MATCHUP);
 			stmt1.setInt(1, matchup.getTeamA());
 			stmt1.setInt(2, matchup.getTeamB());
+			stmt1.setInt(3, matchup.getWeek());
 			stmt1.executeUpdate();
 			
 			stmt1.clearParameters();
 			stmt1.setInt(1, matchup.getTeamB());
 			stmt1.setInt(2, matchup.getTeamA());
+			stmt1.setInt(3, matchup.getWeek());
 			stmt1.executeUpdate();
 			
 		} catch (Exception e) {
