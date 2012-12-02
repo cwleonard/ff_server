@@ -44,22 +44,23 @@ public class MemberController {
 		)
 	{
 		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+		
 		MemberDAO dao = new MemberDAO();
 		String token = null;
 		try {
 			token = dao.authenticateUser(userName, Member.getHash(password));
 		} catch (NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 		Response response = null;
 		if (token != null) {
 			response = Response.ok().header(TOKEN_HEADER, token).build();
-			System.out.println("authenticated " + userName);
+			//System.out.println("authenticated " + userName);
 		} else {
 			response = Response.status(Status.UNAUTHORIZED).build();
 		}
@@ -75,12 +76,15 @@ public class MemberController {
 	    )
 	{
 
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("GET " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
-		System.out.println(requester.getUserName() + " is loading self");
+		//System.out.println(requester.getUserName() + " is loading self");
 
 		Gson gson = new Gson();
 		String json = gson.toJson(requester);
@@ -99,12 +103,15 @@ public class MemberController {
 	    )
 	{
 
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("GET " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
-		System.out.println(requester.getUserName() + " is loading " + userName);
+		//System.out.println(requester.getUserName() + " is loading " + userName);
 		
 		MemberDAO dao = new MemberDAO();
 		Member m = null;
@@ -130,6 +137,9 @@ public class MemberController {
 		)
 	{
 		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("PUT " + uri.toString());
+
 		Gson gson = new Gson();
 		Member member = gson.fromJson(json, Member.class);
 		
@@ -147,7 +157,7 @@ public class MemberController {
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 
-		System.out.println(requester.getUserName() + " is updating their account");
+		//System.out.println(requester.getUserName() + " is updating their account");
 
 		MemberDAO dao = new MemberDAO();
 		member.setAccessToken(UUID.randomUUID().toString());
@@ -163,6 +173,9 @@ public class MemberController {
 		)
 	{
 		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Response response = null;
 		
 		Gson gson = new Gson();
@@ -176,7 +189,7 @@ public class MemberController {
 			UriBuilder ub = uriInfo.getAbsolutePathBuilder();
 			URI memberUri = ub.path(member.getUserName()).build();
 			
-			System.out.println("created new member " + member.getUserName());
+			//System.out.println("created new member " + member.getUserName());
 			
 			response = Response.created(memberUri).header(TOKEN_HEADER, member.getAccessToken()).build();
 			

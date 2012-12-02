@@ -53,12 +53,15 @@ public class LeagueController {
 	    )
 	{
 
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("GET " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
-		System.out.println(requester.getUserName() + " is loading leagues");
+		//System.out.println(requester.getUserName() + " is loading leagues");
 		
 		LeagueDAO dao = new LeagueDAO();
 		List<League> leagues = null;
@@ -92,12 +95,15 @@ public class LeagueController {
 	    )
 	{
 
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("GET " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
-		System.out.println(requester.getUserName() + " is loading league " + id);
+		//System.out.println(requester.getUserName() + " is loading league " + id);
 		
 		LeagueDAO dao = new LeagueDAO();
 		League l = dao.loadById(id);
@@ -117,6 +123,10 @@ public class LeagueController {
 		String json
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("PUT " + uri.toString());
+
 		Gson gson = new Gson();
 		League league = gson.fromJson(json, League.class);
 
@@ -127,7 +137,7 @@ public class LeagueController {
 		}
 		
 
-		System.out.println(requester.getUserName() + " is updating league " + league.getId());
+		//System.out.println(requester.getUserName() + " is updating league " + league.getId());
 
 		LeagueDAO dao = new LeagueDAO();
 		dao.update(league);
@@ -144,13 +154,17 @@ public class LeagueController {
 		@PathParam("id") int lid
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
 			return Response.status(Status.UNAUTHORIZED).build();
 		}
 
-		System.out.println(requester.getUserName() + " is joining league " + lid);
+		//System.out.println(requester.getUserName() + " is joining league " + lid);
 
 		LeagueDAO dao = new LeagueDAO();
 		dao.joinLeague(lid, requester.getUserName());
@@ -166,6 +180,10 @@ public class LeagueController {
 		String json
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Gson gson = new Gson();
 		League league = gson.fromJson(json, League.class);
 		
@@ -181,9 +199,9 @@ public class LeagueController {
 		UriBuilder ub = uriInfo.getAbsolutePathBuilder();
 		URI leagueUri = ub.path(String.valueOf(league.getId())).build();
 		
-		System.out.println("member " + requester.getUserName()
-				+ " created new leauge " + league.getName() + " with id "
-				+ league.getId());
+//		System.out.println("member " + requester.getUserName()
+//				+ " created new leauge " + league.getName() + " with id "
+//				+ league.getId());
 		
 		return Response.created(leagueUri).build();
 		
@@ -196,6 +214,10 @@ public class LeagueController {
 		@PathParam("id") int leagueId
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -208,8 +230,8 @@ public class LeagueController {
 		draft.setNotifier(new EmailNotifier());
 		draft.setRosterStore(new RosterDAO());
 
-		System.out.println("member " + requester.getUserName()
-				+ " is starting the draft process on league " + l.getId());
+//		System.out.println("member " + requester.getUserName()
+//				+ " is starting the draft process on league " + l.getId());
 
 		if (l.getCommissioner().equals(requester)) {
 			
@@ -242,6 +264,10 @@ public class LeagueController {
 			@PathParam("id") int leagueId
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("GET " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -255,9 +281,9 @@ public class LeagueController {
 		List<Player> players = null;
 		if (draft.getWaitingFor().equals(requester)) {
 
-			System.out.println("member " + requester.getUserName()
-					+ " is getting available players for draft round "
-					+ draft.getRound() + " in league " + l.getId());
+//			System.out.println("member " + requester.getUserName()
+//					+ " is getting available players for draft round "
+//					+ draft.getRound() + " in league " + l.getId());
 			
 			try {
 			
@@ -289,6 +315,10 @@ public class LeagueController {
 		String json
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
@@ -306,10 +336,10 @@ public class LeagueController {
 		
 		if (draft.getWaitingFor().equals(requester)) {
 
-			System.out.println("member " + requester.getUserName()
-					+ " is drafting player " + player.getLastName()
-					+ " for draft round "
-					+ draft.getRound() + " in league " + l.getId());
+//			System.out.println("member " + requester.getUserName()
+//					+ " is drafting player " + player.getLastName()
+//					+ " for draft round "
+//					+ draft.getRound() + " in league " + l.getId());
 			
 			try {
 				draft.draftPlayer(player);
@@ -335,6 +365,10 @@ public class LeagueController {
 		String json
 		)
 	{
+		
+		URI uri = uriInfo.getRequestUri();
+		System.out.println("POST " + uri.toString());
+
 		Member requester = this.lookupByToken(token);
 		if (requester == null) {
 			System.out.println("unknown token " + token);
